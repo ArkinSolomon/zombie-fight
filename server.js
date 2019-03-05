@@ -121,10 +121,10 @@ setInterval(() => {
 
 let promises = [];
 setInterval(() => {
-  if (entities.players){
-    for (let zomb in entities.zombies){
-      var zombie = entities.zombies[zomb];
-      var player = findClosestPlayer(zombie);
+  for (let zomb in entities.zombies){
+    var zombie = entities.zombies[zomb];
+    var player = findClosestPlayer(zombie);
+    if (player && zombie){
       if (zombie.x > player.x){
         zombie.x -= 0.5;
       }else if (zombie.x < player.x){
@@ -153,38 +153,6 @@ function findClosestPlayer(zombie){
   var min = Math.min(...distArr);
   return entities.players[idArr[distArr.indexOf(min)]];
 }
-
-setInterval(() => {
-  var zombie = [];
-  var player = [];
-  for (let zomb in entities.zombies){
-    zombie.push(entities.zombies[zomb]);
-  }
-
-  for (let play in entities.players){
-    player.push(entities.players[play]);
-  }
-
-  for (let zombieZombieCollision = 0; zombieZombieCollision < zombie.length; zombieZombieCollision++){
-    var zombie1 = zombie[zombieZombieCollision];
-    var zombie2 = zombie[zombieZombieCollision + 1];
-    if (distance(zombie1.x, zombie2.x, zombie1.y, zombie2.y) < 20){
-      // if (zombie1.x > zombie2.x){
-      //   zombie1.x = zombie2.x + 10;
-      // }else if (zombie1.x < zombie2.x){
-      //   zombie1.x = zombie2.x - 10;
-      // }
-      //
-      // if (zombie1.y > zombie2.y){
-      //   zombie1.y = zombie2.y + 10;
-      // }else if (zombie1.x < zombie2.x){
-      //   zombie1.y = zombie2.y - 10;
-      // }
-
-      entities.zombies = {};
-    }
-  }
-}, 1000 / 60);
 
 function distance(a1, a2, b1, b2){
   var a = a1 - a2;

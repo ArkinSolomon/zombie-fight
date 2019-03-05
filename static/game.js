@@ -1,4 +1,5 @@
 var socket = io();
+var entities = {};
 
 var movement = {
   up: false,
@@ -60,6 +61,8 @@ var ctx = canvas.getContext('2d');
 
 socket.on('update', function(entities){
 
+  entities = entities;
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   ctx.fillStyle = 'rgb(241,194,125)';
@@ -83,3 +86,58 @@ socket.on('update', function(entities){
     ctx.stroke();
   }
 });
+
+setInterval(function(){
+  var players = [];
+  var zombies = [];
+  for (play in entities.players){
+    let player = entity.players[play];
+    let playerObject = {
+        x: player.x,
+        y: player.y,
+        id: play
+    }
+    players.push(playerObject);
+  }
+
+  for (zomb in entities.zombies){
+    let zombie = entities.zombies[zomb];
+    let zombieObject = {
+        x: zombie.x,
+        y: zombie.y,
+        id: zombieObject
+    }
+    zombies.push(playerObject);
+  }
+
+  console.log(zombies.length);
+
+  for (let zZCollison = 0; zZCollison < zombies.length - 2; zZCollison++){
+    console.log('run');
+    var hitbox1 = {
+      x: zombies[zZCollison].x,
+      y: zombies[zZCollison].y,
+      height: 10,
+      width: 10
+    };
+
+    var hitbox2 = {
+      x: zombies[zZCollison + 1].x,
+      y: zombies[zZCollison + 1].y,
+      height: 10,
+      width: 10
+    };
+    if (checkHitbox(hitbox1, hitbox2)){
+      console.log('hit');
+    }
+  }
+}, 1000 / 60);
+
+function checkHitbox(hitbox1, hitbox2){
+  console.log('check');
+  if (Math.abs(hitbox1.x - hitbox2.x) <= 10 && Math.abs(hitbox1.y - hitbox2.y) <= 10){
+     return true;
+   }else{
+     return false;
+   }
+}
