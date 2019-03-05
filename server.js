@@ -110,7 +110,7 @@ setInterval(() => {
 
 var timeOfStart;
 
-socket.on('start', () => {
+io.on('start', () => {
   timeOfStart = date.getTime();
 });
 
@@ -119,10 +119,11 @@ async function interval(){
   return time;
 }
 
-setInterval(() =>) {
-  entities.[`zombie${date.getTime()}`] = {
+setInterval(() => {
+  let id = `zombie${date.getTime()}`;
+  entities[id] = {
     x: Math.floor(Math.random() * 951),
     y: Math.floor(Math.random() * 901)
   }
-  socket.emmit('zombie spawn', entities);
-}, interval();
+  io.emit('zombie spawn', entities);
+}, interval());
