@@ -121,29 +121,27 @@ setInterval(() => {
 
 let promises = [];
 setInterval(() => {
-  promises.push(new Promise(resolve, reject) => {
-    for (let zomb in entities.zombies){
-      var zombie = entities.zombies[zomb];
-      var player = findClosestPlayer(zombie);
-      if (zombie.x > player.x){
-        zombie.x -= 0.5;
-      }else if (zombie.x < player.x){
-        zombie.x += 0.5;
-      }
-      if (zombie.y > player.y){
-        zombie.y -= 0.5;
-      }else if (zombie.y < player.y){
-        zombie.y += 0.5;
-      }
+  for (let zomb in entities.zombies){
+    var zombie = entities.zombies[zomb];
+    var player = findClosestPlayer(zombie);
+    if (zombie.x > player.x){
+      zombie.x -= 0.5;
+    }else if (zombie.x < player.x){
+      zombie.x += 0.5;
     }
-    resolve();
+    if (zombie.y > player.y){
+      zombie.y -= 0.5;
+    }else if (zombie.y < player.y){
+      zombie.y += 0.5;
+    }
   }
-}), 1000 / 60);
+}, 1000 / 60);
+
 function findClosestPlayer(zombie){
   var idArr = [];
   var distArr = [];
   for (let play in entities.players){
-    var player = entities.playes[play];
+    var player = entities.players[play];
     idArr.push(play);
     var a = player.x - zombie.x;
     var b = player.y - zombie.y;
@@ -151,5 +149,5 @@ function findClosestPlayer(zombie){
   }
 
   var min = Math.min(...distArr);
-  return entities.player[idArr[distArr.indexOf(min)]];
+  return entities.players[idArr[distArr.indexOf(min)]];
 }
