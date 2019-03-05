@@ -9,9 +9,10 @@ const io = socketIO(server);
 
 const {getDate} = require('arkin');
 
-const entities = {};
-
-const date = new Date();
+const entities = {
+  players: {},
+  zombies: {}
+};
 
 const port = 5000
 
@@ -102,28 +103,53 @@ setInterval(() => {
   }
 
   entities.players = players;
-
-  players.time = `[${getDate(config)} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}:${date.getMilliseconds()}]`;
-  console.log(players);
+  let date = new Date();
+  entities.time = `[${getDate(config)} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}:${date.getMilliseconds()}]`;
+  console.log(entities);
   io.sockets.emit('update', entities);
 }, 1000 / 60);
 
-var timeOfStart;
-
-io.on('start', () => {
-  timeOfStart = date.getTime();
-});
-
-async function interval(){
-  var time = 10000;
-  return time;
-}
-
 setInterval(() => {
+  let date = new Date();
   let id = `zombie${date.getTime()}`;
-  entities[id] = {
+  entities.zombies[id] = {
     x: Math.floor(Math.random() * 951),
-    y: Math.floor(Math.random() * 901)
+    y: Math.floor(Math.random() * 901),
+    health: 50
   }
-  io.emit('zombie spawn', entities);
-}, interval());
+}, 10000);
+
+let promises = [];
+setInterval(() => {
+  promises.push(new Promise(resolve, reject) => {
+    for (let zomb in entities.zombies){
+      var zombie = entities.zombies[zomb];
+      var player = findClosestPlayer(zombie);
+      if (zombie.x > player.x){
+        zombie.x -= 0.5;
+      }else if (zombie.x < player.x){
+        zombie.x += 0.5;
+      }
+      if (zombie.y > player.y){
+        zombie.y -= 0.5;
+      }else if (zombie.y < player.y){
+        zombie.y += 0.5;
+      }
+    }
+    resolve();
+  }
+}), 1000 / 60);
+function findClosestPlayer(zombie){
+  var idArr = [];
+  var distArr = [];
+  for (let play in entities.players){
+    var player = entities.playes[play];
+    idArr.push(play);
+    var a = player.x - zombie.x;
+    var b = player.y - zombie.y;
+    distArr.push(Math.sqrt((a*a)+(b*b)));
+  }
+
+  var min = Math.min(...distArr);
+  return entities.player[idArr[distArr.indexOf(min)]];
+}

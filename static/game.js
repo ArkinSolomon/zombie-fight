@@ -59,6 +59,7 @@ canvas.height = 900;
 var ctx = canvas.getContext('2d');
 
 socket.on('update', function(entities){
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   ctx.fillStyle = 'rgb(241,194,125)';
@@ -71,16 +72,14 @@ socket.on('update', function(entities){
     ctx.fill();
     ctx.stroke();
   }
-});
 
-socket.on('zombie spawn', function(entities){
-    for (let zomb in entities.zombies){
-      var zombie = entities.zombies[zomb];
-      ctx.fillStyle = 'green';
-      ctx.strokeStyle = 'black';
-      ctx.beginPath();
-      ctx.arc(zombie.x, zombie.y, 10, 0, 2 * Math.PI);
-      ctx.fill();
-      ctx.stroke();
-    }
+  for (let zomb in entities.zombies){
+    var zombie = entities.zombies[zomb];
+    ctx.fillStyle = 'green';
+    ctx.strokeStyle = 'black';
+    ctx.beginPath();
+    ctx.arc(zombie.x, zombie.y, 10, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+  }
 });
