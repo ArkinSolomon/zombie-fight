@@ -121,18 +121,20 @@ setInterval(() => {
 
 let promises = [];
 setInterval(() => {
-  for (let zomb in entities.zombies){
-    var zombie = entities.zombies[zomb];
-    var player = findClosestPlayer(zombie);
-    if (zombie.x > player.x){
-      zombie.x -= 0.5;
-    }else if (zombie.x < player.x){
-      zombie.x += 0.5;
-    }
-    if (zombie.y > player.y){
-      zombie.y -= 0.5;
-    }else if (zombie.y < player.y){
-      zombie.y += 0.5;
+  if (entities.players){
+    for (let zomb in entities.zombies){
+      var zombie = entities.zombies[zomb];
+      var player = findClosestPlayer(zombie);
+      if (zombie.x > player.x){
+        zombie.x -= 0.5;
+      }else if (zombie.x < player.x){
+        zombie.x += 0.5;
+      }
+      if (zombie.y > player.y){
+        zombie.y -= 0.5;
+      }else if (zombie.y < player.y){
+        zombie.y += 0.5;
+      }
     }
   }
 }, 1000 / 60);
@@ -145,9 +147,41 @@ function findClosestPlayer(zombie){
     idArr.push(play);
     var a = player.x - zombie.x;
     var b = player.y - zombie.y;
-    distArr.push(Math.sqrt((a*a)+(b*b)));
+    distArr.push(distance(player.x, zombie.x, player.y, zombie.y));
   }
 
   var min = Math.min(...distArr);
   return entities.players[idArr[distArr.indexOf(min)]];
 }
+
+setInterval(() => {
+  var zombie = [];
+  var player = [];
+  for (let zomb in entities.zombies){
+    zombie.push(entities.zombies[zomb]);
+  }
+
+  for (let play in entities.players){
+    player.push(entities.players[play]);
+  }
+
+  for (let zombieZombieCollision = 0; zombieZombieCollision < zombie.length; zombieZombieCollision++){
+    var zombie1 = zombie[zombieZombieCollision];
+    var zombie2 = zombie[zombieZombieCollision + 1];
+    if (distance(zombie1.x, zombie2.x, zombie1.y, zombie2.y) < 20){
+      zombie1.x = zombie2.x - 10;
+      zombie1.y = zombie2.y - 10;
+    }
+  }
+}, 1000 / 60);
+
+function distance(a1, a2, b1, b2){
+  var a = a1 - a2;
+  var b = b1 - b2;
+
+  return Math.sqrt((a * a) + (b*b));
+}
+
+setInterval(() => {
+  entities.zombies = {};
+}, 3000000);
