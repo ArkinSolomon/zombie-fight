@@ -169,17 +169,19 @@ setInterval(() => {
     var zombie1 = zombie[zombieZombieCollision];
     var zombie2 = zombie[zombieZombieCollision + 1];
     if (distance(zombie1.x, zombie2.x, zombie1.y, zombie2.y) < 20){
-      if (zombie1.x > zombie2.x){
-        zombie1.x = zombie2.x + 10;
-      }else if (zombie1.x < zombie2.x){
-        zombie1.x = zombie2.x - 10;
-      }
+      // if (zombie1.x > zombie2.x){
+      //   zombie1.x = zombie2.x + 10;
+      // }else if (zombie1.x < zombie2.x){
+      //   zombie1.x = zombie2.x - 10;
+      // }
+      //
+      // if (zombie1.y > zombie2.y){
+      //   zombie1.y = zombie2.y + 10;
+      // }else if (zombie1.x < zombie2.x){
+      //   zombie1.y = zombie2.y - 10;
+      // }
 
-      if (zombie1.y > zombie2.y){
-        zombie1.y = zombie2.y + 10;
-      }else if (zombie1.x < zombie2.x){
-        zombie1.y = zombie2.y - 10;
-      }
+      entities.zombies = {};
     }
   }
 }, 1000 / 60);
