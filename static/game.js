@@ -106,6 +106,21 @@ socket.on('update', function(e){
   ctx.strokeStyle = 'black';
   ctx.rect(10, 10, 100, 10);
 
+  let counterHealthKit = new healthKit({
+    x: 35,
+    y: 860,
+  }, ctx, 3);
+
+  let counterBandage = new bandage({
+    x: 100,
+    y: 860,
+  }, circle, ctx, 3);
+
+  for (let i in entities.items){
+    var item = entities.items[i];
+    spawnItem(item, ctx);
+  }
+
   for (let id in entities.players){
     var player = entities.players[id];
     circle(player.x, player.y, 10, '#e8c28b', 'black', ctx);
@@ -116,15 +131,17 @@ socket.on('update', function(e){
     circle(zombie.x, zombie.y, 10, 'green', 'black', ctx);
   }
 
-  for (let i in entities.items){
-    var item = entities.items[i];
-    spawnItem(item, ctx);
-  }
-
   if (Object.keys(entities.players).indexOf(thisSocket) === -1 || dead){
     deathScreen(ctx, canvas);
   }else{
     updateHealth(ctx);
+    ctx.fillStyle = 'black';
+    ctx.font = '20px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(entities.players[thisSocket].items.healthKit, 35, 830);
+    ctx.fillText(entities.players[thisSocket].items.bandage, 100, 830);
+    counterHealthKit.draw();
+    counterBandage.draw();
   }
 });
 
@@ -136,7 +153,7 @@ function updateHealth(ctx){
   ctx.fillRect(11, 11, getHealthLength(entities.players[thisSocket].health), 8);
   ctx.fillStyle = 'white';
   ctx.font = '9px Arial';
-  ctx.fillText(entities.players[thisSocket].health.toString(), 20, 18);
+  ctx.fillText(entities.players[thisSocket].health, 20, 18);
 }
 
 function getHealthLength(health){
@@ -177,39 +194,51 @@ function deathScreen(ctx, canvas){
   ctx.fillText("You Died", canvas.width / 2, canvas.height / 2);
   ctx.font = '40px Courier';
   ctx.fillText("Click to respawn", canvas.width / 2, canvas.height / 2 + 50);
-  canvas.addEventListener('click', function(){
-    dead = false;
-    canvas.removeEventListener('click');
-    socket.emit('new player');
-  });
+  canvas.addEventListener('click', handle);
+}
+
+function handle(e){
+  e.target.removeEventListener(e.type, arguments.callee);
+  socket.emit('new player');
+  dead = false;
 }
 
 class healthKit {
-  constructor(item, ctx){
+  constructor(item, ctx, ratio){
     this.ctx = ctx;
     this.x = item.x;
     this.y = item.y
+    if (ratio){
+      this.ratio = ratio;
+    }else{
+      this.ratio = 1;
+    }
   }
 
   draw(){
     this.ctx.fillStyle = 'white';
-    this.ctx.fillRect(this.x - 8, this.y - 6, 16, 12);
+    this.ctx.fillRect(this.x - 8 * this.ratio, this.y - 6 * this.ratio, 16 * this.ratio, 12 * this.ratio);
     this.ctx.fillStyle = '#e23d3d';
-    this.ctx.fillRect(this.x - 4, this.y - 2, 8, 4);
-    this.ctx.fillRect(this.x - 2, this.y - 4, 4, 8);
+    this.ctx.fillRect(this.x - (4 * this.ratio), this.y - (2 * this.ratio), 8 * this.ratio, 4 * this.ratio);
+    this.ctx.fillRect(this.x - (2 * this.ratio), this.y - (4 * this.ratio), 4 * this.ratio, 8 * this.ratio);
   }
 }
 
 class bandage {
-  constructor(item, circle, ctx){
+  constructor(item, circle, ctx, ratio){
     this.ctx = ctx;
     this.circle = circle;
     this.x = item.x;
     this.y = item.y;
+    if (ratio){
+      this.ratio = ratio;
+    }else{
+      this.ratio = 1;
+    }
   }
 
   draw(){
-    this.circle(this.x, this.y, 8, 'white', 'white', this.ctx);
-    this.circle(this.x, this.y, 3, 'black', 'white', this.ctx);
+    this.circle(this.x, this.y, 8 * this.ratio, 'white', 'white', this.ctx);
+    this.circle(this.x, this.y, 3 * this.ratio, 'black', 'white', this.ctx);
   }
 }

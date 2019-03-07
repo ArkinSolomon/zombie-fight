@@ -58,7 +58,7 @@ io.on('connection', (socket) => {
   socket.on('bandage', (id) => {
     if (entities.players[id].items.bandage > 0 && entities.players[id].health < 100){
       entities.players[id].items.bandage--;
-      entities.players[id].health += 25;
+      entities.players[id].health += 10;
       if (entities.players[id].health > 100){
         entities.players[id].health = 100;
       }
