@@ -15,6 +15,8 @@ const entities = {
   items: {}
 };
 
+const startTime = new Date().getTime();
+
 const port = 5000
 
 app.set('port', port);
@@ -236,8 +238,8 @@ setInterval(() => {
       if (Object.keys(entities.players).indexOf(player.id) !== -1){
         itemArr.forEach((item) => {
           if (Object.keys(entities.items).indexOf(item.id) !== -1){
-            var pOrMX = plusOrMinus(item.x, 7);
-            var pOrMY = plusOrMinus(item.y, 7);
+            var pOrMX = plusOrMinus(item.x, 10);
+            var pOrMY = plusOrMinus(item.y, 10);
             if (player.x > pOrMX[0] && player.x < pOrMX[1] && player.y > pOrMY[0] && player.y < pOrMY[1]){
               entities.players[player.id].items[item.item] += 1;
               delete entities.items[item.id];
@@ -275,19 +277,20 @@ setInterval(() => {
 }, 10000);
 
 setInterval(() => {
+  var zSpeed = new Date().getTime() - startTime * 2;
   for (let zomb in entities.zombies){
     var zombie = entities.zombies[zomb];
     var player = findClosestPlayer(zombie);
     if (player && zombie){
       if (zombie.x > player.x){
-        zombie.x -= 0.5;
+        zombie.x -= zSpeed;
       }else if (zombie.x < player.x){
-        zombie.x += 0.5;
+        zombie.x += zSpeed;
       }
       if (zombie.y > player.y){
-        zombie.y -= 0.5;
+        zombie.y -= zSpeed;
       }else if (zombie.y < player.y){
-        zombie.y += 0.5;
+        zombie.y += zSpeed;
       }
     }
   }
