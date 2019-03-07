@@ -33,6 +33,7 @@ server.listen(port, () => {
 var players = {};
 
 io.on('connection', (socket) => {
+  console.log(`Player joined: ${socket.id}`);
   socket.emit('get socket', socket.id);
   socket.on('new player', () => {
     players[socket.id] = {
@@ -277,20 +278,19 @@ setInterval(() => {
 }, 10000);
 
 setInterval(() => {
-  var zSpeed = new Date().getTime() - startTime * 2;
   for (let zomb in entities.zombies){
     var zombie = entities.zombies[zomb];
     var player = findClosestPlayer(zombie);
     if (player && zombie){
       if (zombie.x > player.x){
-        zombie.x -= zSpeed;
+        zombie.x -= 0.5;
       }else if (zombie.x < player.x){
-        zombie.x += zSpeed;
+        zombie.x += 0.5;
       }
       if (zombie.y > player.y){
-        zombie.y -= zSpeed;
+        zombie.y -= 0.5;
       }else if (zombie.y < player.y){
-        zombie.y += zSpeed;
+        zombie.y += 0.5;
       }
     }
   }
