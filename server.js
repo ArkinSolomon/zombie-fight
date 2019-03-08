@@ -107,6 +107,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
+    console.log(`Player left: ${socket.id}`);
     delete players[socket.id];
   });
 });
@@ -280,17 +281,17 @@ setInterval(() => {
 setInterval(() => {
   for (let zomb in entities.zombies){
     var zombie = entities.zombies[zomb];
-    var player = findClosestPlayer(zombie);
+    var player = findClosestPlayer(zombie).data;
     if (player && zombie){
       if (zombie.x > player.x){
-        zombie.x -= 0.5;
+        zombie.x -= (zombie.x - player.x) / 500;
       }else if (zombie.x < player.x){
-        zombie.x += 0.5;
+        zombie.x += (player.x - zombie.x) / 500;
       }
       if (zombie.y > player.y){
-        zombie.y -= 0.5;
+        zombie.y -= (zombie.y - player.y) / 500;
       }else if (zombie.y < player.y){
-        zombie.y += 0.5;
+      zombie.y += (player.y - zombie.y) / 500;
       }
     }
   }
@@ -308,7 +309,10 @@ function findClosestPlayer(zombie){
   }
 
   var min = Math.min(...distArr);
-  return entities.players[idArr[distArr.indexOf(min)]];
+  return {
+    data: entities.players[idArr[distArr.indexOf(min)]],
+    distance: min
+  };
 }
 
 function distance(a1, a2, b1, b2){

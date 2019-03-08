@@ -122,13 +122,13 @@ socket.on('update', function(e){
   }
 
   for (let id in entities.players){
-    var player = entities.players[id];
-    circle(player.x, player.y, 10, '#e8c28b', 'black', ctx);
+    var player = new user(entities.players[id], circle, ctx);
+    player.draw();
   }
 
   for (let zomb in entities.zombies){
-    var zombie = entities.zombies[zomb];
-    circle(zombie.x, zombie.y, 10, 'green', 'black', ctx);
+    var zombie = new enemy(entities.zombies[zomb], circle, ctx);
+    zombie.draw();
   }
 
   if (Object.keys(entities.players).indexOf(thisSocket) === -1 || dead){
@@ -240,5 +240,31 @@ class bandage {
   draw(){
     this.circle(this.x, this.y, 8 * this.ratio, 'white', 'white', this.ctx);
     this.circle(this.x, this.y, 3 * this.ratio, 'black', 'white', this.ctx);
+  }
+}
+
+class user {
+  constructor(player, circle, ctx){
+    this.x = player.x;
+    this.y = player.y;
+    this.circle = circle;
+    this.ctx = ctx;
+  }
+
+  draw(){
+    this.circle(this.x, this.y, 10, '#e8c28b', 'black', this.ctx);
+  }
+}
+
+class enemy {
+  constructor(zombie, circle, ctx){
+    this.x = zombie.x;
+    this.y = zombie.y;
+    this.circle = circle;
+    this.ctx = ctx;
+  }
+
+  draw(){
+    this.circle(this.x, this.y, 10, 'green', 'black', this.ctx);
   }
 }
