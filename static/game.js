@@ -100,6 +100,9 @@ socket.on('update', function(e){
 
   entities = e;
 
+  const ping = new Date().getTime() - e.time.ms;
+  console.log(ping);
+
   ctx.fillStyle = 'rgb(119, 214, 85)';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 

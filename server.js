@@ -17,7 +17,11 @@ const entities = {
 
 const startTime = new Date().getTime();
 
-const port = 5000
+const port = 5000;
+
+process.on('uncaughtException', (err) => {
+  console.log(err.stack);
+});
 
 app.set('port', port);
 app.use('/static', express.static(__dirname + '/static'));
@@ -134,8 +138,6 @@ setInterval(() => {
   }
 
   entities.players = players;
-  let date = new Date();
-  entities.time = `[${getDate(config)} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}:${date.getMilliseconds()}]`;
 
   var playerArr = [];
   var zombieArr = [];
@@ -252,6 +254,12 @@ setInterval(() => {
     });
   }
 
+  let date = new Date();
+  entities.time = {
+    timestamp: `[${getDate(config)} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}:${date.getMilliseconds()}]`,
+    ms: date.getTime()
+  };
+
   io.sockets.emit('update', entities);
 }, 1000 / 60);
 
@@ -281,8 +289,8 @@ setInterval(() => {
 setInterval(() => {
   for (let zomb in entities.zombies){
     var zombie = entities.zombies[zomb];
-    var player = findClosestPlayer(zombie).data;
-    if (player && zombie){
+    var player = findClosestPlayer(zombie).data
+    if (Object.keys(entities.players).length > 0 && Object.keys(entities.zombies).length > 0 && player && zombie && typeof player.x !== 'undefined' && typeof player.y !== 'undefined' && typeof zombie.x !== 'undefined' && typeof zombie.y !== 'undefined'){
       if (zombie.x > player.x){
         zombie.x -= (zombie.x - player.x) / 500;
       }else if (zombie.x < player.x){
@@ -291,7 +299,13 @@ setInterval(() => {
       if (zombie.y > player.y){
         zombie.y -= (zombie.y - player.y) / 500;
       }else if (zombie.y < player.y){
-      zombie.y += (player.y - zombie.y) / 500;
+        zombie.y += (player.y - zombie.y) / 500;
+      }
+      console.log((Math.sqrt(square(player.y - zombie.y) + square(player.x - zombie.x))) / square(distance(player.x, zombie.x, player.y, zombie.y)));
+      for (let pathFinderXCounter = Math.min(...[player.x, zombie.x]); pathFinderXCounter <= Math.max(...[player.x, zombie.x]); pathFinderXCounter++){
+        for (let pathFinderYCounter = Math.min(...[player.y, zombie.y]); pathFinderYCounter <= Math.max(...[player.y, zombie.y]); pathFinderYCounter++){
+
+        }
       }
     }
   }
@@ -351,6 +365,10 @@ setInterval(() => {
 
 function plusOrMinus(val, pOrM){
   return [val - pOrM, val + pOrM];
+}
+
+function square(number){
+  return (number * number);
 }
 
 class item {
