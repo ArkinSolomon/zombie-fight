@@ -120,6 +120,8 @@ socket.on('update', function(d){
     y: 860,
   }, circle, ctx, 3);
 
+  console.log(d.entities.zombies)
+
   for (let i in entities.items){
     var item = entities.items[i];
     spawnItem(item, ctx);

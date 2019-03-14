@@ -1,10 +1,11 @@
+const startTime = new Date().getTime();
 process.cwd(__dirname);
 process.on('uncaughtException', (err) => {
   console.log(err.stack);
 });
 
-const startTime = new Date().getTime();
 
+const arkin = require('arkin');
 const express = require('express');
 const http = require('http');
 const path = require('path');
@@ -13,8 +14,9 @@ const socketIO = require('socket.io');
 const app = express();
 const server = http.Server(app);
 const io = socketIO(server);
+
 const port = 5000;
-const {getDate} = require('arkin');
+const {createMap} = require('./createMap');
 
 var data = {
   entities: {},
@@ -27,9 +29,22 @@ var entities = {
   items: {}
 };
 
-var zombieSpeed = .6;
+console.log(`
+   \x1b[47m\x1b[34m ################### \x1b[0m
+   \x1b[47m\x1b[34m INITIALIZING SERVER \x1b[0m
+   \x1b[47m\x1b[34m ################### \x1b[0m
+`);
+
+console.log('Creating map in 3 seconds.');
+arkin.sleep(3000);
+createMap();
+
+var zombieSpeed = function(){
+  return .5;
+};
+
 var zombieSpawnInterval = function(){
-  return 10000;
+  return 1000;
 };
 
 app.set('port', port);
@@ -265,7 +280,7 @@ setInterval(() => {
 
   let date = new Date();
   data.time = {
-    timestamp: `[${getDate(config)} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}:${date.getMilliseconds()}]`,
+    timestamp: `[${arkin.getDate(config)} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}:${date.getMilliseconds()}]`,
     ms: date.getTime()
   };
   data.entities = entities;
@@ -304,13 +319,11 @@ setInterval(() => {
       var sides = {
         a: null,
         b: null,
-        c: zombieSpeed
+        c: zombieSpeed()
       }
 
       sides.a = Math.abs(Math.sin(rad) * sides.c);
       sides.b = Math.sqrt(square(sides.c) - square(sides.a));
-
-      console.log(sides);
 
       if (zombie.x > player.x){
         zombie.x -= sides.a;
