@@ -17,10 +17,17 @@
         margin-right: auto;
         display: block;
       }
+
+      #ping-container {
+        color: white;
+      }
     </style>
     <script src="/socket.io/socket.io.js"></script>
   </head>
   <body>
+    <div id="ping-container">
+      <p>Ping: <b><span id="ping"></span></b></p>
+    </div>
     <div id="canvas-container">
       <canvas id="canvas"></canvas>
     </div>

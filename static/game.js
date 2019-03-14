@@ -96,12 +96,13 @@ canvas.width = 950;
 canvas.height = 900;
 var ctx = canvas.getContext('2d');
 
-socket.on('update', function(e){
+socket.on('update', function(d){
 
-  entities = e;
+  entities = d.entities;
 
-  const ping = new Date().getTime() - e.time.ms;
-  console.log(ping);
+  const ping = new Date().getTime() - d.time.ms;
+  document.getElementById('ping').innerHTML = '';
+  document.getElementById('ping').innerHTML = ping;
 
   ctx.fillStyle = 'rgb(119, 214, 85)';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
