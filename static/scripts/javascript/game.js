@@ -2,6 +2,7 @@ var socket = io();
 var entities = {};
 
 var thisSocket;
+var map;
 
 var dead = false;
 
@@ -69,8 +70,9 @@ socket.on('dead', function(id){
   }
 });
 
-socket.on('get socket', function(socketId){
-  thisSocket = socketId;
+socket.on('get socket', function(data){
+  thisSocket = data.socketId;
+  map = JSON.parse(data.map);
 });
 
 setInterval(function(){
@@ -92,7 +94,7 @@ setInterval(function(){
 });
 
 var canvas = document.getElementById('canvas');
-canvas.width = 950;
+canvas.width = 960;
 canvas.height = 900;
 var ctx = canvas.getContext('2d');
 

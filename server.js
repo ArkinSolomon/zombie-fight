@@ -7,6 +7,7 @@ process.on('uncaughtException', (err) => {
 
 //External modules
 const arkin = require('arkin');
+const fs = require('fs');
 
 /* Code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
@@ -15,15 +16,15 @@ const http = require('http');
 const path = require('path');
 const socketIO = require('socket.io');
 
-//Internal modules
-const {createMap} = require('./createMap');
-
 //Server setup
 const app = express();
 const server = http.Server(app);
 const io = socketIO(server);
 
-/* Code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
+/* End code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
+
+//Internal modules
+const {createMap} = require('./createMap');
 
 //Port
 const port = 5000;
@@ -93,7 +94,10 @@ io.on('connection', (socket) => {
   console.log(`Player joined: ${socket.id}`);
 
   //Gives player socket id
-  socket.emit('get socket', socket.id);
+  socket.emit('get socket', {
+    map: fs.readFileSync('./map.json', 'utf8').map,
+    socketId: socket.id
+  });
 
   //Initializes player
   socket.on('new player', () => {
