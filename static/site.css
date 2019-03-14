@@ -1,0 +1,18 @@
+body {
+  background: #4286f4;
+}
+
+#canvas {
+  width: 950px;
+  height: 900px;
+  border: 5px solid black;
+  padding-left: 0px;
+  padding-left: 0px;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+#ping-container {
+  color: white;
+}

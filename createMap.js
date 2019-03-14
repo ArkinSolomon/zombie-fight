@@ -1,10 +1,16 @@
+//External modules
 const fs = require('fs');
 
+//Creates map
 module.exports.createMap = function(){
+
+  //Gets time
   const start = new Date().getTime();
 
+  //Removes map
   fs.unlink('map.json', (err, res) => {
 
+    //Catches not found
     if (err){
       console.log(`MAP FILE NOT FOUND. SKIPING DELETION`);
     }

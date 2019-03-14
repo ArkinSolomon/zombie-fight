@@ -120,8 +120,6 @@ socket.on('update', function(d){
     y: 860,
   }, circle, ctx, 3);
 
-  console.log(d.entities.zombies)
-
   for (let i in entities.items){
     var item = entities.items[i];
     spawnItem(item, ctx);
@@ -273,4 +271,9 @@ class enemy {
   draw(){
     this.circle(this.x, this.y, 10, 'green', 'black', this.ctx);
   }
+}
+
+function zClear(){
+  socket.emit('clear zombies');
+  return('Cleared Zombies');
 }
