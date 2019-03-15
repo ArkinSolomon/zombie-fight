@@ -6,9 +6,6 @@ process.on('uncaughtException', (err) => {
 });
 const port = 5000;
 
-
-
-
 //External modules
 const arkin = require('arkin');
 const fs = require('fs');
@@ -37,31 +34,27 @@ app.get('/', (request, response) => {
 
 /* End code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
-//Creates tiles
-createMap((walls) => {
-
-  //Waits for half a second
-  arkin.sleep(500);
-
-  //Listens on port
-  server.listen(port, () => {
-    console.log('Server listening on port ' + port);
-  });
-  walls
-});
+var map = [];
 
 //Clears the console
 arkin.clear();
 
-//Prints "Initializing Server" to look cool
+//Prints initializing server to look cool
 console.log(`
    \x1b[47m\x1b[34m ################### \x1b[0m
    \x1b[47m\x1b[34m INITIALIZING SERVER \x1b[0m
    \x1b[47m\x1b[34m ################### \x1b[0m
 `);
 
-//Map
-const map = fs.readFileSync('./map/map.json', 'utf8');
+//Waits for one and a half a seconds
+arkin.sleep(1500);
+
+//Creates tiles
+walls = createMap();
+map = fs.readFileSync('./map/map.json', 'utf8');
+server.listen(port, () => {
+  console.log('Server listening on port ' + port);
+});
 
 //Main variable to be sent
 var data = {
@@ -75,8 +68,6 @@ var entities = {
   zombies: {},
   items: {}
 };
-
-console.log(map);
 
 //Waits for three seconds before continuing to make it look like the server is doing something complex in the background
 arkin.sleep(3000);

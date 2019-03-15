@@ -100,7 +100,7 @@ socket.on('get socket', function(data){
 
   //Gets map
   map = JSON.parse(data.map);
-  render(map, ctx);
+  render(ctx);
 });
 
 //Checks for movement
@@ -142,7 +142,7 @@ socket.on('update', function(d){
   document.getElementById('ping').innerHTML = ping;
 
   //Renders map
-  render(map, ctx);
+  render(ctx);
 
   //Draws health bar
   ctx.strokeStyle = 'black';
@@ -319,7 +319,7 @@ function handle(e){
 /* End code from https://www.sitepoint.com/create-one-time-events-javascript */
 
 //Renders map
-function render(map, ctx){
+function render(ctx){
 
   //Loops through all tiles
   for (let m in map){

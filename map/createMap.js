@@ -14,6 +14,10 @@ const mapArray = mapString.split('.');
 const tileSize = 30;
 const initialNextId = 960 / 30;
 
+//Array of walls
+var allWalls = [];
+var walls = [];
+
 //Creates map
 module.exports.createMap = function(callback){
 
@@ -88,9 +92,6 @@ module.exports.createMap = function(callback){
     //Gets all walls
     var walls = function(){
 
-      //Array of walls
-      var allWalls = [];
-
       //Loops through all walls
       for (let w in walls){
         var wall = map[w];
@@ -106,6 +107,6 @@ module.exports.createMap = function(callback){
     }
 
     //Callback
-    callback(walls());
+    return callback(walls());
   });
 }
