@@ -4,6 +4,10 @@ process.cwd(__dirname);
 process.on('uncaughtException', (err) => {
   console.log(err.stack);
 });
+const port = 5000;
+
+
+
 
 //External modules
 const arkin = require('arkin');
@@ -16,18 +20,48 @@ const http = require('http');
 const path = require('path');
 const socketIO = require('socket.io');
 
+//Internal modules
+const {createMap} = require('./map/createMap.js');
+
 //Server setup
 const app = express();
 const server = http.Server(app);
 const io = socketIO(server);
 
+//Starts server
+app.set('port', port);
+app.use('/static', express.static(__dirname + '/static'));
+app.get('/', (request, response) => {
+  response.sendFile(path.join(__dirname, '/static/index.html'));
+});
+
 /* End code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
-//Internal modules
-const {createMap} = require('./map/createMap');
+//Creates tiles
+createMap((walls) => {
 
-//Port
-const port = 5000;
+  //Waits for half a second
+  arkin.sleep(500);
+
+  //Listens on port
+  server.listen(port, () => {
+    console.log('Server listening on port ' + port);
+  });
+  walls
+});
+
+//Clears the console
+arkin.clear();
+
+//Prints "Initializing Server" to look cool
+console.log(`
+   \x1b[47m\x1b[34m ################### \x1b[0m
+   \x1b[47m\x1b[34m INITIALIZING SERVER \x1b[0m
+   \x1b[47m\x1b[34m ################### \x1b[0m
+`);
+
+//Map
+const map = fs.readFileSync('./map/map.json', 'utf8');
 
 //Main variable to be sent
 var data = {
@@ -42,15 +76,7 @@ var entities = {
   items: {}
 };
 
-//Clears the console
-arkin.clear();
-
-//Prints "Initializing Server" to look cool
-console.log(`
-   \x1b[47m\x1b[34m ################### \x1b[0m
-   \x1b[47m\x1b[34m INITIALIZING SERVER \x1b[0m
-   \x1b[47m\x1b[34m ################### \x1b[0m
-`);
+console.log(map);
 
 //Waits for three seconds before continuing to make it look like the server is doing something complex in the background
 arkin.sleep(3000);
@@ -67,24 +93,6 @@ var zombieSpawnInterval = function(){
 
 /* Code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
-//Starts server
-app.set('port', port);
-app.use('/static', express.static(__dirname + '/static'));
-app.get('/', (request, response) => {
-  response.sendFile(path.join(__dirname, '/static/index.html'));
-});
-
-//Creates tiles
-createMap(() => {
-
-  //Waits for half a second
-  arkin.sleep(500);
-
-  //Listens on port
-  server.listen(port, () => {
-    console.log('Server listening on port ' + port);
-  });
-});
 
 /* End code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
@@ -99,7 +107,7 @@ io.on('connection', (socket) => {
 
   //Gives player socket id
   socket.emit('get socket', {
-    map: fs.readFileSync('./map/map.json', 'utf8'),
+    map: map,
     socketId: socket.id
   });
 
@@ -252,7 +260,7 @@ setInterval(() => {
   //Adds players to entities
   entities.players = players;
 
-  //Arrays of items
+  //Arrays of entities and objects
   var playerArr = [];
   var zombieArr = [];
   var itemArr = [];
@@ -374,11 +382,11 @@ setInterval(() => {
             //Checks if player has invincibility
             if (entities.players[player.id].damage === true){
 
-              //Removes health from player
-              entities.players[player.id].health -= 10;
-
               //Adds invincibility
               entities.players[player.id].damage = false;
+
+              //Removes health from player
+              entities.players[player.id].health -= 10;
 
               //Checks if the player died
               if (entities.players[player.id].health <= 0){
@@ -446,7 +454,71 @@ setInterval(() => {
     });
   }
 
-  /* End player-item collison*/
+  /* End player-item collison */
+
+  //Resets player array
+  playerArr = [];
+
+  /* Player-wall collison */
+
+  //Checks if there are players
+  if (Object.keys(entities.players) > 0){
+
+    //Loops through all players
+    for (let play in entities.players){
+      var player = entities.players[play];
+
+      //Pushes player's position and id
+      playerArr.push({
+        x: player.x,
+        y: player.y,
+        id: play
+      });
+    }
+
+    //Loops through all walls
+    for (let pWCounter in walls()){
+      var wall = walls()[pWCounter];
+
+      //Loops through all players
+      for (let p in players){
+        var player = playerArr[p];
+
+        //Makes sure all variables are present
+        if (Object.keys(entities.players).indexOf(player.id) !== -1 && wall[0] && wall[1] && wall[2] && wall[3]){
+
+          //Center of wall
+          var wallCenterX = wall[0] + 15;
+          var wallCenterY = wall[1] + 15;
+
+          //Gets player plus or minus values
+          var playerPOrMX = plusOrMinus(player.x, 10);
+          var playerPOrMY = plusOrMinus(player.y, 10);
+
+          //Collison detection horizontal
+          if (playerPOrMX[0] > wall[2] || playerPOrMX[1] > wall[0]){
+            if (player.x > wallCenterX){
+              entities.players[player.id].x = wallCenterX + 26;
+            }else if (player.x < wallCenterX){
+              entities.players[player.id].x = wallCenterX - 26;
+            }
+          }
+
+          //Collison detection vertical
+          if (playerPOrMY[0] > wall[3] || playerPOrMY[1] > wall[1]){
+            if (player.y > wallCenterY){
+              entities.players[player.id].y = wallCenterY + 26;
+            }else if (player.y < wallCenterY){
+              entities.players[player.id].y = wallCenterY - 26;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /* End player-wall collison */
+
 
   //Defines date
   let date = new Date();

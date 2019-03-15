@@ -66,7 +66,7 @@ module.exports.createMap = function(callback){
       };
 
       //Doesn't push last tile because it is a blank string
-      if (id !== 930){
+      if (id !== 960){
 
         //Pushes the tile
         main.map.push(newTile);
@@ -74,6 +74,8 @@ module.exports.createMap = function(callback){
         //Logs the tile
         console.log(newTile);
       }
+
+      //Increases id
       id++;
     }
 
@@ -83,7 +85,27 @@ module.exports.createMap = function(callback){
     //Logs the time it took
     console.log(`${main.map.length} values written in ${(new Date().getTime() - start) / 1000} seconds`);
 
+    //Gets all walls
+    var walls = function(){
+
+      //Array of walls
+      var allWalls = [];
+
+      //Loops through all walls
+      for (let w in walls){
+        var wall = map[w];
+
+        //Checks if it is a wall
+        if (wall.value === 1){
+
+          //Pushes walls boundries { minX, minY, maxX, maxY }
+          allWalls.push([wall.x, wall.y, wall.x + 30, wall.y + 30]);
+        }
+      }
+      return allWalls;
+    }
+
     //Callback
-    callback();
+    callback(walls());
   });
 }
