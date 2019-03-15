@@ -24,7 +24,7 @@ const io = socketIO(server);
 /* End code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
 //Internal modules
-const {createMap} = require('./createMap');
+const {createMap} = require('./map/createMap');
 
 //Port
 const port = 5000;
@@ -55,9 +55,6 @@ console.log(`
 //Waits for three seconds before continuing to make it look like the server is doing something complex in the background
 arkin.sleep(3000);
 
-//Creates tiles
-createMap();
-
 //Determines zombie speed
 var zombieSpeed = function(){
   return .5;
@@ -73,13 +70,20 @@ var zombieSpawnInterval = function(){
 //Starts server
 app.set('port', port);
 app.use('/static', express.static(__dirname + '/static'));
-
 app.get('/', (request, response) => {
   response.sendFile(path.join(__dirname, '/static/index.html'));
 });
 
-server.listen(port, () => {
-  console.log('Server listening on port ' + port);
+//Creates tiles
+createMap(() => {
+
+  //Waits for half a second
+  arkin.sleep(500);
+
+  //Listens on port
+  server.listen(port, () => {
+    console.log('Server listening on port ' + port);
+  });
 });
 
 /* End code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
@@ -95,7 +99,7 @@ io.on('connection', (socket) => {
 
   //Gives player socket id
   socket.emit('get socket', {
-    map: fs.readFileSync('./map.json', 'utf8').map,
+    map: fs.readFileSync('./map/map.json', 'utf8'),
     socketId: socket.id
   });
 
@@ -194,8 +198,8 @@ io.on('connection', (socket) => {
     /* End code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
     //Player bounding
-    if (player.x > 950){
-      player.x = 950;
+    if (player.x > 960){
+      player.x = 960;
     }else if (player.y > 900){
       player.y = 900;
     }else if (player.x < 0){
@@ -234,8 +238,8 @@ setInterval(() => {
   //Zombie bounding
   for (let zomb in entities.zombies){
     var zombie = entities.zombies[zomb];
-    if (zombie.x > 950){
-      zombie.x = 950;
+    if (zombie.x > 960){
+      zombie.x = 960;
     }else if (zombie.y > 900){
       zombie.y = 900;
     }else if (zombie.x < 0){
@@ -491,7 +495,7 @@ setInterval(() => {
 
   //Creates zombie
   entities.zombies[id] = {
-    x: Math.floor(Math.random() * 950),
+    x: Math.floor(Math.random() * 960),
     y: Math.floor(Math.random() * 900),
     health: 50
   }

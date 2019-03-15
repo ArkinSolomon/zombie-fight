@@ -72,7 +72,8 @@ socket.on('dead', function(id){
 
 socket.on('get socket', function(data){
   thisSocket = data.socketId;
-  map = JSON.parse(data.map);
+  map = JSON.parse(data.map)[0].map;
+  render(map, ctx);
 });
 
 setInterval(function(){
@@ -106,8 +107,10 @@ socket.on('update', function(d){
   document.getElementById('ping').innerHTML = '';
   document.getElementById('ping').innerHTML = ping;
 
-  ctx.fillStyle = 'rgb(119, 214, 85)';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  render(map, ctx);
+
+  // ctx.fillStyle = 'rgb(119, 214, 85)';
+  // ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.strokeStyle = 'black';
   ctx.rect(10, 10, 100, 10);
