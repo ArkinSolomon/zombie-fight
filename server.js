@@ -1,10 +1,20 @@
-//Basic setup
+/* Basic setup */
+
+//Time of server start
 const startTime = new Date().getTime();
+
+//Changes directory
 process.cwd(__dirname);
+
+//Doesn't stop program on error
 process.on('uncaughtException', (err) => {
   console.log(err.stack);
 });
+
+//Port for server
 const port = 5000;
+
+/* End basic setup */
 
 //External modules
 const arkin = require('arkin');
@@ -251,6 +261,15 @@ setInterval(() => {
   //Adds players to entities
   entities.players = players;
 
+  //Removes items after one minute
+  for (let i in entities.items){
+
+    //Checks age
+    if (new Date().getTime() - entities.items[i].time >= 60){
+      delete entities.items[i];
+    }
+  }
+
   //Arrays of entities and objects
   var playerArr = [];
   var zombieArr = [];
@@ -469,6 +488,8 @@ setInterval(() => {
 
     //Loops through all walls
     for (let pWCounter in walls){
+
+      //Local wall { topLeftX, topLeftY, bottomRightX, bottomRightX }
       var wall = walls[pWCounter];
 
       //Loops through all players
@@ -482,7 +503,7 @@ setInterval(() => {
           var wallCenterX = wall[0] + 15;
           var wallCenterY = wall[1] + 15;
 
-          //Gets player plus or minus values
+          //Gets player plus or minus values for both x and y { minimum, maximum }
           var playerPOrMX = plusOrMinus(player.x, 10);
           var playerPOrMY = plusOrMinus(player.y, 10);
 
@@ -571,6 +592,10 @@ setInterval(() => {
 
     //Makes sure all variables are present
     if (Object.keys(entities.players).length > 0 && Object.keys(entities.zombies).length > 0 && player && zombie && player.x && player.y && zombie.x && zombie.y){
+
+      if (player.y === 0){
+        player.y = 1;
+      }
 
       //Gets the angle of the slope in radians [ toRadian(sin^-1(|slope|)) ]
       var rad = toRad(Math.atan(Math.abs(zombie.x - player.x)) / (Math.abs(zombie.y - player.y)));

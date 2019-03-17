@@ -199,8 +199,8 @@ socket.on('update', function(d){
     /* End text styling */
 
     //Item amount text
-    ctx.fillText(entities.players[thisSocket].items.healthKit, 35, 830);
-    ctx.fillText(entities.players[thisSocket].items.bandage, 100, 830);
+    ctx.fillText(entities.players[thisSocket].items.bandage, 35, 830);
+    ctx.fillText(entities.players[thisSocket].items.healthKit, 100, 830);
     counterHealthKit.draw();
     counterBandage.draw();
   }
