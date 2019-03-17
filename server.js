@@ -34,8 +34,6 @@ app.get('/', (request, response) => {
 
 /* End code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
-var map = [];
-
 //Clears the console
 arkin.clear();
 
@@ -49,9 +47,15 @@ console.log(`
 //Waits for one and a half a seconds
 arkin.sleep(1500);
 
+var walls;
+var map;
+
 //Creates tiles
-walls = createMap();
-map = fs.readFileSync('./map/map.json', 'utf8');
+createMap(arkin, () => {
+  walls = JSON.parse(fs.readFileSync('./map/walls.json'));
+  map = JSON.parse(fs.readFileSync('./map/map.json', 'utf8'));
+});
+
 server.listen(port, () => {
   console.log('Server listening on port ' + port);
 });
@@ -82,10 +86,6 @@ var zombieSpawnInterval = function(){
   return 10000;
 };
 
-/* Code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
-
-
-/* End code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
 //Easier player handling
 var players = {};
@@ -98,7 +98,7 @@ io.on('connection', (socket) => {
 
   //Gives player socket id
   socket.emit('get socket', {
-    map: map,
+    map: JSON.stringify(map),
     socketId: socket.id
   });
 
@@ -453,7 +453,7 @@ setInterval(() => {
   /* Player-wall collison */
 
   //Checks if there are players
-  if (Object.keys(entities.players) > 0){
+  if (Object.keys(entities.players).length > 0){
 
     //Loops through all players
     for (let play in entities.players){
@@ -468,11 +468,11 @@ setInterval(() => {
     }
 
     //Loops through all walls
-    for (let pWCounter in walls()){
-      var wall = walls()[pWCounter];
+    for (let pWCounter in walls){
+      var wall = walls[pWCounter];
 
       //Loops through all players
-      for (let p in players){
+      for (let p in playerArr){
         var player = playerArr[p];
 
         //Makes sure all variables are present
@@ -487,16 +487,12 @@ setInterval(() => {
           var playerPOrMY = plusOrMinus(player.y, 10);
 
           //Collison detection horizontal
-          if (playerPOrMX[0] > wall[2] || playerPOrMX[1] > wall[0]){
+          if (playerPOrMX[0] > wall[2] && playerPOrMX[1] > wall[0] && playerPOrMY[0] > wall[3] && playerPOrMY[1] > wall[1]){
             if (player.x > wallCenterX){
               entities.players[player.id].x = wallCenterX + 26;
             }else if (player.x < wallCenterX){
               entities.players[player.id].x = wallCenterX - 26;
             }
-          }
-
-          //Collison detection vertical
-          if (playerPOrMY[0] > wall[3] || playerPOrMY[1] > wall[1]){
             if (player.y > wallCenterY){
               entities.players[player.id].y = wallCenterY + 26;
             }else if (player.y < wallCenterY){
@@ -509,7 +505,6 @@ setInterval(() => {
   }
 
   /* End player-wall collison */
-
 
   //Defines date
   let date = new Date();

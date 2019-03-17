@@ -46,10 +46,10 @@ document.addEventListener('keydown', function(event){
     case 16: //[ shift ]
       movement.shift = true;
       break;
-    case 69: //Q
+    case 81: //Q
       movement.q = true;
       break;
-    case 81: //E
+    case 69: //E
       movement.e = true;
       break;
   }

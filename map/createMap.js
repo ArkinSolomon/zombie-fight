@@ -16,97 +16,108 @@ const initialNextId = 960 / 30;
 
 //Array of walls
 var allWalls = [];
-var walls = [];
 
 //Creates map
-module.exports.createMap = function(callback){
+module.exports.createMap = function(arkin, callback){
 
   //Removes map
-  fs.unlink('./map/map.json', (err, res) => {
+  fs.unlink('./map/map.json', (err) => {
 
     //Catches error not found
     if (err){
       console.log(`MAP FILE NOT FOUND. SKIPING DELETION`);
     }
 
-    //Where the map data is stored
-    var main = {
-      map: []
-    };
+    fs.unlink('./map/walls.json', (err) =>{
 
-    //Id definitions
-    var id = 0;
-    var nextId = initialNextId;
-
-    //Position definitions
-    var x = 0 - tileSize;
-    var y = 0;
-
-    //Loops through tiles
-    for (t in mapArray){
-
-      //Resets x if nessecary and increases y if nessecary
-      if (id >= nextId){
-        nextId += 32;
-        x = 0;
-        y += tileSize
-      }else{
-        x += tileSize;
+      //Catches error not found
+      if (err){
+        console.log(`MAP FILE NOT FOUND. SKIPING DELETION`);
       }
 
-      //Removes new line
-      var tileOption = mapArray[t].replace('\n', '');
-
-      //Splits text into an array for data
-      var tileData = tileOption.split('&');
-
-      //Creates new tile
-      var newTile = {
-        id: id,
-        x: x,
-        y: y,
-        value: tileData[1],
-        color: tileData[0]
+      //Where the map data is stored
+      var main = {
+        map: [],
+        walls: []
       };
 
-      //Doesn't push last tile because it is a blank string
-      if (id !== 960){
+      //Id definitions
+      var id = 0;
+      var nextId = initialNextId;
 
-        //Pushes the tile
-        main.map.push(newTile);
+      //Position definitions
+      var x = 0 - tileSize;
+      var y = 0;
 
-        //Logs the tile
-        console.log(newTile);
+      //Loops through tiles
+      for (t in mapArray){
+
+        //Resets x if nessecary and increases y if nessecary
+        if (id >= nextId){
+          nextId += 32;
+          x = 0;
+          y += tileSize
+        }else{
+          x += tileSize;
+        }
+
+        //Removes new line
+        var tileOption = mapArray[t].replace('\n', '');
+
+        //Splits text into an array for data
+        var tileData = tileOption.split('&');
+
+        //Creates new tile
+        var newTile = {
+          id: id,
+          x: x,
+          y: y,
+          value: Number(tileData[1]),
+          color: tileData[0]
+        };
+
+        //Doesn't push last tile because it is a blank string
+        if (id !== 960){
+
+          //Pushes the tile
+          main.map.push(newTile);
+
+          //Logs the tile
+          console.log(newTile);
+        }
+
+        //Increases id
+        id++;
       }
 
-      //Increases id
-      id++;
-    }
+      arkin.sleep(1000);
 
-    //Writes map to json file
-    fs.writeFileSync('./map/map.json', JSON.stringify(main.map), 'utf8');
-
-    //Logs the time it took
-    console.log(`${main.map.length} values written in ${(new Date().getTime() - start) / 1000} seconds`);
-
-    //Gets all walls
-    var walls = function(){
-
-      //Loops through all walls
-      for (let w in walls){
-        var wall = map[w];
+      //Loops through all tiles
+      for (let t in main.map){
+        let tile = main.map[t];
 
         //Checks if it is a wall
-        if (wall.value === 1){
+        if (tile.value === 1){
 
-          //Pushes walls boundries { minX, minY, maxX, maxY }
-          allWalls.push([wall.x, wall.y, wall.x + 30, wall.y + 30]);
+          //Creates new wall { minX, minY, maxX, maxY }
+          var newWall = [tile.x, tile.y, tile.x + 30, tile.y + 30];
+
+          //Pushes wall
+          main.walls.push(newWall);
+
+          //Logs the wall
+          console.log(newWall);
         }
       }
-      return allWalls;
-    }
 
-    //Callback
-    return callback(walls());
+      //Writes map and walls to json files
+      fs.writeFileSync('./map/map.json', JSON.stringify(main.map), 'utf8');
+      fs.writeFileSync('./map/walls.json', JSON.stringify(main.walls), 'utf8');
+
+      //Logs the time it took
+      console.log(`${main.map.length + main.walls.length} values written in ${(new Date().getTime() - start) / 1000} seconds`);
+
+      callback();
+    });
   });
 }
