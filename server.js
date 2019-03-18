@@ -122,6 +122,11 @@ io.on('connection', (socket) => {
       items: {
         healthKit: 0,
         bandage: 0
+      },
+      data: {
+        ip: socket.handshake.address,
+        joinTime: new Date().getTime(),
+        username: socket.id
       }
     };
   });
@@ -162,6 +167,10 @@ io.on('connection', (socket) => {
         entities.players[id].health = 100;
       }
     }
+  });
+
+  socket.on('username', (username) => {
+    entities.players[socket.id].data.username = username;
   });
 
   /* Code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
@@ -265,7 +274,7 @@ setInterval(() => {
   for (let i in entities.items){
 
     //Checks age
-    if (new Date().getTime() - entities.items[i].time >= 60){
+    if (new Date().getTime() - entities.items[i].time <= 60){
       delete entities.items[i];
     }
   }
@@ -424,6 +433,9 @@ setInterval(() => {
     for (let i in entities.items){
       var item = entities.items[i];
 
+      //Updates time left
+      entities.items[i].timeRemaining = 60 - (item.id - new Date().getTime());
+
       //Pushes item's position, id, and type
       itemArr.push({
         x: item.x,
@@ -489,7 +501,7 @@ setInterval(() => {
     //Loops through all walls
     for (let pWCounter in walls){
 
-      //Local wall { topLeftX, topLeftY, bottomRightX, bottomRightX }
+      //Local wall { topLeftX, topLeftY, bottomRightX, bottomRightY }
       var wall = walls[pWCounter];
 
       //Loops through all players
@@ -507,14 +519,14 @@ setInterval(() => {
           var playerPOrMX = plusOrMinus(player.x, 10);
           var playerPOrMY = plusOrMinus(player.y, 10);
 
-          //Collison detection horizontal
-          if (playerPOrMX[0] > wall[2] && playerPOrMX[1] > wall[0] && playerPOrMY[0] > wall[3] && playerPOrMY[1] > wall[1]){
-            if (player.x > wallCenterX){
+          //Collison detection
+          if ((playerPOrMX[0] > wall[0] && playerPOrMX[1] > wall[2]) || (playerPOrMY[0] > wall[1] && playerPOrMY[1] > wall[3])){
+            if (player.x > wallCenterX && (playerPOrMX[0] > wall[2] && playerPOrMX[1] > wall[0])){
               entities.players[player.id].x = wallCenterX + 26;
             }else if (player.x < wallCenterX){
               entities.players[player.id].x = wallCenterX - 26;
             }
-            if (player.y > wallCenterY){
+            if (player.y > wallCenterY && (playerPOrMY[0] > wall[3] && playerPOrMY[1] > wall[1])){
               entities.players[player.id].y = wallCenterY + 26;
             }else if (player.y < wallCenterY){
               entities.players[player.id].y = wallCenterY - 26;
@@ -533,14 +545,23 @@ setInterval(() => {
   //Timestamps
   data.time = {
     timestamp: `[${arkin.getDate(config)} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}:${date.getMilliseconds()}]`,
-    ms: date.getTime()
+    ms: date.getTime(),
+    serverRunTime: (date.getTime() - startTime).toString() + 'ms'
   };
 
   //Updates data
   data.entities = entities;
 
+  //Writes data to log file
+  fs.appendFile('./logs/' + startTime + 'log.txt', '{ "logAt' + new Date().getTime() + ': "' + JSON.stringify(data) + '},', 'utf8', () => {
+
+    //Logs data to console
+    console.log('\x1b[35m\n', data.time.timestamp, '\x1b[0m');
+    console.log(require('util').inspect(data, false, null, true));
+  });
+
   //Sends data to all clients
-  io.sockets.emit('update', data);
+  io.sockets.emit('update', JSON.stringify(data));
 
 }, 1000 / 60);
 
@@ -570,13 +591,14 @@ setInterval(() => {
 setInterval(() => {
 
   //Makes zombie id
-  let id = `zombie${new Date().getTime()}`;
+  let id = `enemy${new Date().getTime()}`;
 
   //Creates zombie
   entities.zombies[id] = {
     x: Math.floor(Math.random() * 960),
     y: Math.floor(Math.random() * 900),
-    health: 50
+    health: 50,
+    id: id
   }
 }, zombieSpawnInterval());
 
@@ -592,10 +614,6 @@ setInterval(() => {
 
     //Makes sure all variables are present
     if (Object.keys(entities.players).length > 0 && Object.keys(entities.zombies).length > 0 && player && zombie && player.x && player.y && zombie.x && zombie.y){
-
-      if (player.y === 0){
-        player.y = 1;
-      }
 
       //Gets the angle of the slope in radians [ toRadian(sin^-1(|slope|)) ]
       var rad = toRad(Math.atan(Math.abs(zombie.x - player.x)) / (Math.abs(zombie.y - player.y)));
@@ -617,19 +635,22 @@ setInterval(() => {
 
       //Horizontal values
       if (zombie.x > player.x){
-        zombie.x -= sides.a;
+        entities.zombies[zombie.id].x -= sides.a;
       }else if (zombie.x < player.x){
-        zombie.x += sides.a;
+        entities.zombies[zombie.id].x += sides.a;
       }
 
       //Vertical values
       if (zombie.y > player.y){
-        zombie.y -= sides.b;
+        entities.zombies[zombie.id].y -= sides.b;
       }else if (zombie.y < player.y){
-        zombie.y += sides.b;
+        entities.zombies[zombie.id].y += sides.b;
       }
 
+      entities.zombies[zombie.id].calculations = sides;
+
       /* End add or subtract values */
+
     }
   }
 }, 1000 / 60);
@@ -702,14 +723,15 @@ setInterval(() => {
   }
 
   //Creates item
-  let i = new item(type(), new Date().getTime().toString());
+  let i = new item(type());
 
   //Adds item to entities
-  entities.items[i.id] = {
+  entities.items[i.name()] = {
     x: i.x,
     y: i.y,
     item: i.item,
-    id: i.id
+    id: i.id,
+    timeRemaining: 60000
   };
 }, 15000);
 
@@ -736,8 +758,8 @@ function square(number){
 
 //Item class
 class item {
-  constructor(item, id){
-    this.id = id;
+  constructor(item){
+    this.id = new Date().getTime().toString();
     this.item = item;
     this.x = Math.floor(Math.random() * 951);
     this.y = Math.floor(Math.random() * 901);
@@ -757,5 +779,9 @@ class item {
 
   y(){
     return this.y;
+  }
+
+  name(){
+    return 'item' + this.id;
   }
 }

@@ -131,7 +131,10 @@ canvas.height = 900;
 var ctx = canvas.getContext('2d');
 
 //Runs on update from server
-socket.on('update', function(d){
+socket.on('update', function(dataFromServer){
+
+  //Parses data
+  const d = JSON.parse(dataFromServer);
 
   //Simplifies entities
   entities = d.entities;
@@ -329,6 +332,11 @@ function render(ctx){
   }
 }
 
+//Sends player username to server
+function updateUsername(){
+  socket.emit('username', document.getElementById('username').value);
+}
+
 //Clears all zombies on screen (Developer)
 function zClear(){
   socket.emit('clear zombies');
@@ -384,10 +392,15 @@ class user {
     this.y = player.y;
     this.circle = circle;
     this.ctx = ctx;
+    this.username = player.data.username;
   }
 
   draw(){
     this.circle(this.x, this.y, 10, '#e8c28b', 'black', this.ctx);
+    this.ctx.font = "12px Arial";
+    this.ctx.textAlign = 'center';
+    this.ctx.fillStyle = '#40f1f7';
+    ctx.fillText(this.username, this.x, this.y - 20);
   }
 }
 
