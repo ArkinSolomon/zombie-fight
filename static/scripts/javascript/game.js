@@ -78,6 +78,8 @@ document.addEventListener('keyup', function(event){
 
 /* End checks for key presses */
 
+/* End code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
+
 //Sends new player command to server
 socket.emit('new player');
 
@@ -139,6 +141,8 @@ socket.on('update', function(dataFromServer){
   //Simplifies entities
   entities = d.entities;
 
+  console.log(d.time.calcTime);
+
   //Writes ping
   const ping = new Date().getTime() - d.time.ms;
   document.getElementById('ping').innerHTML = '';
@@ -174,6 +178,7 @@ socket.on('update', function(dataFromServer){
   //Loops through players
   for (let id in entities.players){
     var player = new user(entities.players[id], circle, ctx);
+    console.log(entities.players[id]);
     player.draw();
   }
 

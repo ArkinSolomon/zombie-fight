@@ -245,6 +245,8 @@ io.on('connection', (socket) => {
 //Main update function
 setInterval(() => {
 
+  const calcStart = new Date().getTime();
+
   //Date config for timestamp
   let config = {
     format: {
@@ -274,7 +276,8 @@ setInterval(() => {
   for (let i in entities.items){
 
     //Checks age
-    if (new Date().getTime() - entities.items[i].time <= 60){
+    if (entities.items[i].id - new Date().getTime() <= 0){
+      entities.items[i].timeRemaining = entities.items[i].id - new Date().getTime();
       delete entities.items[i];
     }
   }
@@ -546,22 +549,19 @@ setInterval(() => {
   data.time = {
     timestamp: `[${arkin.getDate(config)} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}:${date.getMilliseconds()}]`,
     ms: date.getTime(),
-    serverRunTime: (date.getTime() - startTime).toString() + 'ms'
+    serverRunTime: (date.getTime() - startTime).toString() + 'ms',
+    calcTime: new Date().getTime() - calcStart
   };
 
   //Updates data
   data.entities = entities;
 
-  //Writes data to log file
-  fs.appendFile('./logs/' + startTime + 'log.txt', '{ "logAt' + new Date().getTime() + ': "' + JSON.stringify(data) + '},', 'utf8', () => {
-
-    //Logs data to console
-    console.log('\x1b[35m\n', data.time.timestamp, '\x1b[0m');
-    console.log(require('util').inspect(data, false, null, true));
-  });
-
   //Sends data to all clients
   io.sockets.emit('update', JSON.stringify(data));
+
+  //Logs data to console
+  console.log('\x1b[35m\n', data.time.timestamp, '\x1b[0m');
+  console.log(require('util').inspect(data, false, null, true));
 
 }, 1000 / 60);
 

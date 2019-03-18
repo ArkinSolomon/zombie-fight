@@ -90,8 +90,6 @@ module.exports.createMap = function(arkin, callback){
         id++;
       }
 
-      arkin.sleep(1000);
-
       //Loops through all tiles
       for (let t in main.map){
         let tile = main.map[t];
