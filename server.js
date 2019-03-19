@@ -104,7 +104,7 @@ var players = {};
 io.on('connection', (socket) => {
 
   //Logs player socket id to the console
-  console.log(`Player joined: ${socket.id}`);
+  console.log(`Player joined: ${socket.id} from ${socket.handshake.address}`);
 
   //Gives player socket id
   socket.emit('get socket', {
@@ -169,6 +169,7 @@ io.on('connection', (socket) => {
     }
   });
 
+  //Updates usernames
   socket.on('username', (username) => {
     entities.players[socket.id].data.username = username;
   });
@@ -276,7 +277,7 @@ setInterval(() => {
   for (let i in entities.items){
 
     //Checks age
-    if (entities.items[i].id - new Date().getTime() <= 0){
+    if (entities.items[i].id - new Date().getTime() >= 0){
       entities.items[i].timeRemaining = entities.items[i].id - new Date().getTime();
       delete entities.items[i];
     }
@@ -437,7 +438,7 @@ setInterval(() => {
       var item = entities.items[i];
 
       //Updates time left
-      entities.items[i].timeRemaining = 60 - (item.id - new Date().getTime());
+      entities.items[i].timeRemaining = 60 - (new Date().getTime() - item.id);
 
       //Pushes item's position, id, and type
       itemArr.push({
@@ -651,6 +652,12 @@ setInterval(() => {
 
       /* End add or subtract values */
 
+    }else if (!player){
+      entities.zombies[zombie.id].calculations = {
+        a: 'NO PLAYER',
+        b: 'NO PLAYER',
+        c: zombieSpeed()
+      };
     }
   }
 }, 1000 / 60);

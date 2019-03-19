@@ -13,6 +13,12 @@ var map;
 //Checks if player is dead
 var dead = false;
 
+//Catches error
+window.onerror = function(err){
+  console.log(err);
+  return true;
+}
+
 /* Code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
 //Keeps track of which keys are pressed
@@ -141,7 +147,7 @@ socket.on('update', function(dataFromServer){
   //Simplifies entities
   entities = d.entities;
 
-  console.log(d.time.calcTime);
+  //console.log(d.time.calcTime);
 
   //Writes ping
   const ping = new Date().getTime() - d.time.ms;
@@ -178,7 +184,7 @@ socket.on('update', function(dataFromServer){
   //Loops through players
   for (let id in entities.players){
     var player = new user(entities.players[id], circle, ctx);
-    console.log(entities.players[id]);
+    //console.log(entities.players[id]);
     player.draw();
   }
 
@@ -339,6 +345,7 @@ function render(ctx){
 
 //Sends player username to server
 function updateUsername(){
+  console.log(typeof document.getElementById('username').value)
   socket.emit('username', document.getElementById('username').value);
 }
 
