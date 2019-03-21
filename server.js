@@ -37,6 +37,7 @@ const socketIO = require('socket.io');
 
 //Internal modules
 const {createMap} = require('./map/createMap.js');
+const gameConsole = require('./commands.js');
 
 //Server setup
 const app = express();
@@ -72,6 +73,9 @@ var map;
 createMap(arkin, () => {
   walls = JSON.parse(fs.readFileSync('./map/walls.json'));
   map = JSON.parse(fs.readFileSync('./map/map.json', 'utf8'));
+
+  //Starts the console
+  gameConsole.start();
 });
 
 server.listen(port, () => {
@@ -568,8 +572,6 @@ setInterval(() => {
           //Top collision
           if (wallIsCollide.all(playerPoints, wall, 'top')){
 
-            console.log('COLIDE')
-
             //Horizontal push
             if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'top')){
               entities.players[player.id].x = wallCenterX + 3;
@@ -586,7 +588,7 @@ setInterval(() => {
 
         //Right collision
         }else if (wallIsCollide.all(playerPoints, wall, 'right')){
-console.log('COLIDE')
+
             //Horizontal push
             if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'right')){
               entities.players[player.id].x = wallCenterX + 3;
@@ -603,7 +605,7 @@ console.log('COLIDE')
 
         //Bottom collison
         }else if (wallIsCollide.all(playerPoints, wall, 'bottom')){
-console.log('COLIDE')
+
             //Horizontal push
             if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'bottom')){
               entities.players[player.id].x = wallCenterX + 3;
@@ -620,7 +622,7 @@ console.log('COLIDE')
 
           //Left collison
         }else if (wallIsCollide.all(playerPoints, wall, 'left')){
-console.log('COLIDE')
+
             //Horizontal push
             if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'left')){
               entities.players[player.id].x = wallCenterX + 3;
@@ -646,7 +648,11 @@ console.log('COLIDE')
   /* End player-wall collison */
 
   //Checks if a player is dead
-  for (let entities.players)
+  for (let counter in entities.players){
+    if (!entities.players[counter].dead){
+      delete entities.players[counter]
+    }
+  }
 
   //Defines date
   let date = new Date();
@@ -661,13 +667,10 @@ console.log('COLIDE')
 
   //Updates data
   data.entities = entities;
+  gameConsole.update(data);
 
   //Sends data to all clients
   io.sockets.emit('update', JSON.stringify(data));
-
-  //Logs data to console
-  // console.log('\x1b[35m\n', data.time.timestamp, '\x1b[0m');
-  // console.log(require('util').inspect(data, false, null, true));
 
 }, 1000 / 60);
 
