@@ -243,7 +243,7 @@ io.on('connection', (socket) => {
     if (data.down) {
       player.y += speed;
     }
-    
+
     /* End key presses */
 
     /* End code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
@@ -568,69 +568,71 @@ setInterval(() => {
           //Top collision
           if (wallIsCollide.all(playerPoints, wall, 'top')){
 
+            console.log('COLIDE')
+
             //Horizontal push
             if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'top')){
-              entities.players[player.id].x += 26;
+              entities.players[player.id].x = wallCenterX + 3;
             }else{
-              entities.players[player.id].x -= 26;
+              entities.players[player.id].x = wallCenterX - 3;
             }
 
             //Vertical push
             if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'top')){
-              entities.players[player.id].y += 26;
+              entities.players[player.id].y = wallCenterY + 3;
             }else{
-              entities.players[player.id].y -= 26;
+              entities.players[player.id].y = wallCenterY - 3;
             }
 
         //Right collision
         }else if (wallIsCollide.all(playerPoints, wall, 'right')){
-
+console.log('COLIDE')
             //Horizontal push
             if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'right')){
-              entities.players[player.id].x += 26;
+              entities.players[player.id].x = wallCenterX + 3;
             }else{
-              entities.players[player.id].x -= 26;
+              entities.players[player.id].x = wallCenterX - 3;
             }
 
             //Vertical push
             if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'right')){
-              entities.players[player.id].y += 26;
+              entities.players[player.id].y = wallCenterY + 3;
             }else{
-              entities.players[player.id].y -= 26;
+              entities.players[player.id].y = wallCenterY - 3;
             }
 
         //Bottom collison
         }else if (wallIsCollide.all(playerPoints, wall, 'bottom')){
-
+console.log('COLIDE')
             //Horizontal push
             if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'bottom')){
-              entities.players[player.id].x += 26;
+              entities.players[player.id].x = wallCenterX + 3;
             }else{
-              entities.players[player.id].x -= 26;
+              entities.players[player.id].x = wallCenterX - 3;
             }
 
             //Vertical push
             if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'bottom')){
-              entities.players[player.id].y += 26;
+              entities.players[player.id].y = wallCenterY + 3;
             }else{
-              entities.players[player.id].y -= 26;
+              entities.players[player.id].y = wallCenterY - 3;
             }
 
           //Left collison
         }else if (wallIsCollide.all(playerPoints, wall, 'left')){
-
+console.log('COLIDE')
             //Horizontal push
             if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'left')){
-              entities.players[player.id].x += 26;
+              entities.players[player.id].x = wallCenterX + 3;
             }else{
-              entities.players[player.id].x -= 26;
+              entities.players[player.id].x = wallCenterX - 3;
             }
 
             //Vertical push
             if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'left')){
-              entities.players[player.id].y += 26;
+              entities.players[player.id].y = wallCenterY + 3;
             }else{
-              entities.players[player.id].y -= 26;
+              entities.players[player.id].y = wallCenterY - 3;
             }
           }
 
@@ -642,6 +644,9 @@ setInterval(() => {
   }
 
   /* End player-wall collison */
+
+  //Checks if a player is dead
+  for (let entities.players)
 
   //Defines date
   let date = new Date();
@@ -661,8 +666,8 @@ setInterval(() => {
   io.sockets.emit('update', JSON.stringify(data));
 
   //Logs data to console
-  console.log('\x1b[35m\n', data.time.timestamp, '\x1b[0m');
-  console.log(require('util').inspect(data, false, null, true));
+  // console.log('\x1b[35m\n', data.time.timestamp, '\x1b[0m');
+  // console.log(require('util').inspect(data, false, null, true));
 
 }, 1000 / 60);
 

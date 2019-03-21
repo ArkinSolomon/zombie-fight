@@ -20,12 +20,6 @@ var map;
 //Checks if player is dead
 var dead = false;
 
-//Catches error
-window.onerror = function(err){
-  console.log(err);
-  return true;
-}
-
 /* Code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
 //Keeps track of which keys are pressed
@@ -352,7 +346,6 @@ function render(ctx){
 
 //Sends player username to server
 function updateUsername(){
-  console.log(typeof document.getElementById('username').value)
   socket.emit('username', document.getElementById('username').value);
 }
 
@@ -411,7 +404,10 @@ class user {
     this.y = player.y;
     this.circle = circle;
     this.ctx = ctx;
-    this.username = player.data.username;
+    this.player = player;
+    if (entities.players[player.id] && player && player.data && player.data.username){
+      this.username = player.data.username;
+    }
   }
 
   draw(){
@@ -419,7 +415,9 @@ class user {
     this.ctx.font = "12px Arial";
     this.ctx.textAlign = 'center';
     this.ctx.fillStyle = '#40f1f7';
-    ctx.fillText(this.username, this.x, this.y - 20);
+    if (entities.players[this.player.id] && this.player && this.player.data && this.player.data.username){
+      ctx.fillText(this.username, this.x, this.y - 20);
+    }
   }
 }
 
