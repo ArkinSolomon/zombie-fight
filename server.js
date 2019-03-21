@@ -37,7 +37,7 @@ const socketIO = require('socket.io');
 
 //Internal modules
 const {createMap} = require('./map/createMap.js');
-const gameConsole = require('./commands.js');
+const gameConsole = require('./console.js');
 
 //Server setup
 const app = express();
@@ -139,9 +139,6 @@ var players = {};
 //Socket specific instructions
 io.on('connection', (socket) => {
 
-  //Logs player socket id to the console
-  console.log(`Player joined: ${socket.id} from ${socket.handshake.address}`);
-
   //Gives player socket id
   socket.emit('get socket', {
     map: JSON.stringify(map),
@@ -163,7 +160,8 @@ io.on('connection', (socket) => {
         ip: socket.handshake.address,
         joinTime: new Date().getTime(),
         username: socket.id
-      }
+      },
+      dead: false
     };
   });
 
@@ -274,7 +272,6 @@ io.on('connection', (socket) => {
 
   //Removes players on disconnect
   socket.on('disconnect', () => {
-    console.log(`Player left: ${socket.id}`);
     delete players[socket.id];
   });
 });
@@ -649,7 +646,7 @@ setInterval(() => {
 
   //Checks if a player is dead
   for (let counter in entities.players){
-    if (!entities.players[counter].dead){
+    if (entities.players[counter].dead){
       delete entities.players[counter]
     }
   }
