@@ -1,3 +1,9 @@
+/* createMap.js
+*
+* The server-side file which turns the map string of the file into usable data.
+*
+*/
+
 //Gets time
 const start = new Date().getTime();
 

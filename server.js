@@ -1,3 +1,11 @@
+/* server.js
+*
+* The server-side file which contains the server as well as all of the game
+* logic, which includes: parsing map data, handling movement, pathfinding, item
+* and zombie spawning, and entity collision.
+*
+*/
+
 /* Basic setup */
 
 //Time of server start
@@ -96,6 +104,30 @@ var zombieSpawnInterval = function(){
   return 10000;
 };
 
+//Wall collison functions
+const wallIsCollide = {
+  x: function(playerPoints, wall, which){
+    if ((playerPoints[which][0] > wall[0] && playerPoints[which][0] < wall[2])){
+      return true;
+    }else{
+      return false;
+    }
+  },
+  y: function(playerPoints, wall, which){
+    if (playerPoints[which][1] > wall[1] && playerPoints[which][1] < wall[3]){
+      return true;
+    }else{
+      return false;
+    }
+  },
+  all: function(playerPoints, wall, which){
+    if ((playerPoints[which][0] > wall[0] && playerPoints[which][0] < wall[2]) && (playerPoints[which][1] > wall[1] && playerPoints[which][1] < wall[3])){
+      return true;
+    }else{
+      return false;
+    }
+  }
+}
 
 //Easier player handling
 var players = {};
@@ -211,7 +243,7 @@ io.on('connection', (socket) => {
     if (data.down) {
       player.y += speed;
     }
-
+    
     /* End key presses */
 
     /* End code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
@@ -523,19 +555,87 @@ setInterval(() => {
           var playerPOrMX = plusOrMinus(player.x, 10);
           var playerPOrMY = plusOrMinus(player.y, 10);
 
-          //Collison detection
-          if ((playerPOrMX[0] > wall[0] && playerPOrMX[1] > wall[2]) || (playerPOrMY[0] > wall[1] && playerPOrMY[1] > wall[3])){
-            if (player.x > wallCenterX && (playerPOrMX[0] > wall[2] && playerPOrMX[1] > wall[0])){
-              entities.players[player.id].x = wallCenterX + 26;
-            }else if (player.x < wallCenterX){
-              entities.players[player.id].x = wallCenterX - 26;
+          //Creates usable data
+          var playerPoints = {
+            top: [player.x, playerPOrMY[1]],
+            right: [playerPOrMX[1], player.y],
+            bottom: [player.x, playerPOrMY[0]],
+            left: [playerPOrMX[0], player.y]
+          };
+
+          /* Collison detection */
+
+          //Top collision
+          if (wallIsCollide.all(playerPoints, wall, 'top')){
+
+            //Horizontal push
+            if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'top')){
+              entities.players[player.id].x += 26;
+            }else{
+              entities.players[player.id].x -= 26;
             }
-            if (player.y > wallCenterY && (playerPOrMY[0] > wall[3] && playerPOrMY[1] > wall[1])){
-              entities.players[player.id].y = wallCenterY + 26;
-            }else if (player.y < wallCenterY){
-              entities.players[player.id].y = wallCenterY - 26;
+
+            //Vertical push
+            if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'top')){
+              entities.players[player.id].y += 26;
+            }else{
+              entities.players[player.id].y -= 26;
+            }
+
+        //Right collision
+        }else if (wallIsCollide.all(playerPoints, wall, 'right')){
+
+            //Horizontal push
+            if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'right')){
+              entities.players[player.id].x += 26;
+            }else{
+              entities.players[player.id].x -= 26;
+            }
+
+            //Vertical push
+            if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'right')){
+              entities.players[player.id].y += 26;
+            }else{
+              entities.players[player.id].y -= 26;
+            }
+
+        //Bottom collison
+        }else if (wallIsCollide.all(playerPoints, wall, 'bottom')){
+
+            //Horizontal push
+            if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'bottom')){
+              entities.players[player.id].x += 26;
+            }else{
+              entities.players[player.id].x -= 26;
+            }
+
+            //Vertical push
+            if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'bottom')){
+              entities.players[player.id].y += 26;
+            }else{
+              entities.players[player.id].y -= 26;
+            }
+
+          //Left collison
+        }else if (wallIsCollide.all(playerPoints, wall, 'left')){
+
+            //Horizontal push
+            if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'left')){
+              entities.players[player.id].x += 26;
+            }else{
+              entities.players[player.id].x -= 26;
+            }
+
+            //Vertical push
+            if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'left')){
+              entities.players[player.id].y += 26;
+            }else{
+              entities.players[player.id].y -= 26;
             }
           }
+
+          /* End collison detection */
+
         }
       }
     }
