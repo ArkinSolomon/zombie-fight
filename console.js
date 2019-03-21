@@ -97,7 +97,8 @@ stop
         break;
       default: //If the command has parameters
 
-        //Commands
+        /* Parameter commands */
+
         if (input.startsWith('heal ')){
           let player = input.replace('heal ', '');
           data.entities.players[player].health = 100;
@@ -119,6 +120,9 @@ stop
         }else if (input !== ''){
           console.log('Enter a valid command, do "help" to see all valid commads');
         }
+
+        /* End parameter commands */
+
     }
 
     /* End checks commands*/
