@@ -17,6 +17,9 @@ var thisSocket;
 //Stores map
 var map;
 
+//Stores framerate
+var framerate;
+
 //Checks if player is dead
 var dead = false;
 
@@ -102,7 +105,7 @@ socket.on('dead', function(id){
 });
 
 //Gets initial message
-socket.on('get socket', function(data){
+socket.on('get data', function(data){
 
   //Gets socket id
   thisSocket = data.socketId;
@@ -110,12 +113,15 @@ socket.on('get socket', function(data){
   //Gets map
   map = JSON.parse(data.map);
   render(ctx);
+
+  //Gets framerate
+  framerate = data.framerate;
 });
 
 //Checks for movement
 setInterval(function(){
   socket.emit('movement', movement);
-}, 1000 / 60);
+}, framerate);
 
 //Checks for health kit
 setInterval(function(){
@@ -123,7 +129,7 @@ setInterval(function(){
     socket.emit('healthKit', thisSocket);
     movement.e = false;
   }
-});
+}, framerate);
 
 //Checks for bandage
 setInterval(function(){
@@ -131,7 +137,7 @@ setInterval(function(){
     socket.emit('bandage', thisSocket);
     movement.q = false;
   }
-});
+}, framerate);
 
 //Canvas declaration
 var canvas = document.getElementById('canvas');

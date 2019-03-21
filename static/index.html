@@ -1,10 +1,4 @@
 <!DOCTYPE html>
-<!-- index.html
--
-- The client-side file which draws the canvas as well as provides data output
-- and user input.
--
--->
 <html>
   <head>
     <meta charset="utf-8">
@@ -14,13 +8,14 @@
     <script src="/socket.io/socket.io.js"></script>
   </head>
   <body>
+    <img src="/static/images/logo.png" id="logo"></img>
     <div id="ping-container">
       <p>Ping: <b><span id="ping"></span></b></p>
     </div>
     <div id="username-container">
       <p id="username-label">Enter a new username: </p>
       <input id="username" type="text" name="userName" placeholder="Username"></input>
-      <button onclick="updateUsername()">Update Username</button>
+      <button onclick="updateUsername()" id="username-update">Update Username</button>
     </div>
     <div id="canvas-container">
       <canvas id="canvas"></canvas>

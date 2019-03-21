@@ -45,14 +45,14 @@ module.exports.start = function(){
         break;
       case 'clear players': //Clears all players
         for (let p in Object.keys(data.entities.players)){
-          data.entities.players[p].dead = true;
+          delete data.entities.players[p];
         }
         console.log('Cleared all players');
         break;
       case 'clear': //Clears all entities
       case 'clear all':
         for (let p in Object.keys(data.entities.players)){
-          data.entities.players[p].dead = true;
+          delete data.entities.players[p];
         }
         data.entities.zombies = {};
         data.entities.items = {};
@@ -72,7 +72,9 @@ module.exports.start = function(){
         console.log
         (`
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-HELP-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
-data              Logs all data to the console with a timestamp
+data,             Logs all data to the console with a timestamp
+print,
+log
 
 timestamp,        Displays timestamp
 time
@@ -90,7 +92,7 @@ clear zombies     Clears all zombies
 
 clear items       Clears all items
 
-end,              Shuts down the server and ends the process with exit code 1
+end,              Shuts down the server and ends the process with exit code 0
 stop
 
         `);
@@ -99,10 +101,14 @@ stop
 
         /* Parameter commands */
 
-        if (input.startsWith('heal ')){
-          let player = input.replace('heal ', '');
-          data.entities.players[player].health = 100;
-          console.log(`Healed ${player}`);
+        if (input.startsWith('heal')){
+          if (input.endsWith('l') || input.endsWith(' ')){
+            console.log("Parameter <PLAYER> not provided");
+          }else{
+            let player = input.replace('heal ', '');
+            data.entities.players[player].health = 100;
+            console.log(`Healed ${player}`);
+          }
         }else if (input.startsWith('list ')) {
           let toList = input.replace('list ', '');
           if (toList.length === 0){
@@ -111,7 +117,7 @@ stop
             if (!toList.endsWith('s')){
               toList += 's';
             }
-            var listString = toList.charAt(0).toUpperCase() + toList.slice(1) + '\n';
+          var listString = `\x1b[93m${toList.charAt(0).toUpperCase() + toList.slice(1)}\x1b[0m\n`;
             for (let obj in data.entities[toList]){
               listString += obj + '\n';
             }

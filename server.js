@@ -22,6 +22,10 @@ process.on('uncaughtException', (err) => {
 //Port for server
 const port = 5000;
 
+//Framerate
+const fps = 1;
+const framerate = 1000 / fps;
+
 /* End basic setup */
 
 //External modules
@@ -85,7 +89,8 @@ server.listen(port, () => {
 //Main variable to be sent
 var data = {
   entities: {},
-  time: {}
+  time: {},
+  rules: {}
 };
 
 //Keeps all entities
@@ -95,17 +100,21 @@ var entities = {
   items: {}
 };
 
-//Waits for three seconds before continuing to make it look like the server is doing something complex in the background
+//Waits for three seconds before continuing to make it look like the server is doing something complex in the background but it really isn't
 arkin.sleep(3000);
 
 //Determines zombie speed
+var currentSpeed = .5;
 var zombieSpeed = function(){
-  return .5;
+  currentSpeed += .000000001;
+  return currentSpeed;
 };
 
 //Determines zombie spawn times
+var count = 10000;
 var zombieSpawnInterval = function(){
-  return 10000;
+  count -= 100;
+  return count;
 };
 
 //Wall collison functions
@@ -131,7 +140,7 @@ const wallIsCollide = {
       return false;
     }
   }
-}
+};
 
 //Easier player handling
 var players = {};
@@ -140,9 +149,10 @@ var players = {};
 io.on('connection', (socket) => {
 
   //Gives player socket id
-  socket.emit('get socket', {
+  socket.emit('get data', {
     map: JSON.stringify(map),
-    socketId: socket.id
+    socketId: socket.id,
+    framerate: framerate
   });
 
   //Initializes player
@@ -648,8 +658,8 @@ setInterval(() => {
 
   //Checks if a player is dead
   for (let counter in entities.players){
-    if (entities.players[counter].dead){
-      delete entities.players[counter]
+    if (entities.players[counter].dead || !entities.players[counter].x){
+      delete entities.players[counter];
     }
   }
 
@@ -664,6 +674,11 @@ setInterval(() => {
     calcTime: new Date().getTime() - calcStart
   };
 
+  data.rules = {
+    zombieSpeed: currentSpeed,
+    zombieSpawnInterval: count
+  };
+
   //Updates data
   data.entities = entities;
   gameConsole.update(data);
@@ -671,7 +686,7 @@ setInterval(() => {
   //Sends data to all clients
   io.sockets.emit('update', JSON.stringify(data));
 
-}, 1000 / 60);
+}, framerate);
 
 //Removes invincibility
 setInterval(() => {
@@ -693,7 +708,7 @@ setInterval(() => {
       }, 1000)
     }
   }
-}, 1000 / 60);
+}, framerate);
 
 //Zombie spawning
 setInterval(() => {
@@ -767,7 +782,7 @@ setInterval(() => {
       };
     }
   }
-}, 1000 / 60);
+}, framerate);
 
 //Finds closest player to a zombie
 function findClosestPlayer(zombie){
