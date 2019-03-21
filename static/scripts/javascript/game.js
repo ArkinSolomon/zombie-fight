@@ -405,7 +405,9 @@ class user {
     this.circle = circle;
     this.ctx = ctx;
     this.player = player;
-    this.username = player.data.username;
+    if (player && player.data && player.data.username){
+      this.username = player.data.username;
+    }
   }
 
   draw(){
@@ -413,7 +415,9 @@ class user {
     this.ctx.font = "12px Arial";
     this.ctx.textAlign = 'center';
     this.ctx.fillStyle = '#40f1f7';
-    ctx.fillText(this.username, this.x, this.y - 20);
+    if (this.username){
+      ctx.fillText(this.username, this.x, this.y - 20);
+    }
   }
 }
 

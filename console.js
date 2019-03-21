@@ -97,10 +97,11 @@ stop
         break;
       default: //If the command has parameters
 
-        //Heal
+        //Commands
         if (input.startsWith('heal ')){
           let player = input.replace('heal ', '');
           data.entities.players[player].health = 100;
+          console.log(`Healed ${player}`);
         }else if (input.startsWith('list ')) {
           let toList = input.replace('list ', '');
           if (toList.length === 0){

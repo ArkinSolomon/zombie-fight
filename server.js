@@ -311,7 +311,7 @@ setInterval(() => {
 
     //Checks age
     if (entities.items[i].id - new Date().getTime() >= 0){
-      entities.items[i].timeRemaining = entities.items[i].id - new Date().getTime();
+      entities.items[i].timeRemaining = new Date().getTime() - entities.items[i].timeRemaining;
       delete entities.items[i];
     }
   }
@@ -564,6 +564,8 @@ setInterval(() => {
             left: [playerPOrMX[0], player.y]
           };
 
+          const pushValue = 26;
+
           /* Collison detection */
 
           //Top collision
@@ -571,16 +573,16 @@ setInterval(() => {
 
             //Horizontal push
             if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'top')){
-              entities.players[player.id].x = wallCenterX + 3;
+              entities.players[player.id].x = wallCenterX + pushValue;
             }else{
-              entities.players[player.id].x = wallCenterX - 3;
+              entities.players[player.id].x = wallCenterX - pushValue;
             }
 
             //Vertical push
             if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'top')){
-              entities.players[player.id].y = wallCenterY + 3;
+              entities.players[player.id].y = wallCenterY + pushValue;
             }else{
-              entities.players[player.id].y = wallCenterY - 3;
+              entities.players[player.id].y = wallCenterY - pushValue;
             }
 
         //Right collision
@@ -588,16 +590,16 @@ setInterval(() => {
 
             //Horizontal push
             if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'right')){
-              entities.players[player.id].x = wallCenterX + 3;
+              entities.players[player.id].x = wallCenterX + pushValue;
             }else{
-              entities.players[player.id].x = wallCenterX - 3;
+              entities.players[player.id].x = wallCenterX - pushValue;
             }
 
             //Vertical push
             if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'right')){
-              entities.players[player.id].y = wallCenterY + 3;
+              entities.players[player.id].y = wallCenterY + pushValue;
             }else{
-              entities.players[player.id].y = wallCenterY - 3;
+              entities.players[player.id].y = wallCenterY - pushValue;
             }
 
         //Bottom collison
@@ -605,16 +607,16 @@ setInterval(() => {
 
             //Horizontal push
             if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'bottom')){
-              entities.players[player.id].x = wallCenterX + 3;
+              entities.players[player.id].x = wallCenterX + pushValue;
             }else{
-              entities.players[player.id].x = wallCenterX - 3;
+              entities.players[player.id].x = wallCenterX - pushValue;
             }
 
             //Vertical push
             if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'bottom')){
-              entities.players[player.id].y = wallCenterY + 3;
+              entities.players[player.id].y = wallCenterY + pushValue;
             }else{
-              entities.players[player.id].y = wallCenterY - 3;
+              entities.players[player.id].y = wallCenterY - pushValue;
             }
 
           //Left collison
@@ -622,16 +624,16 @@ setInterval(() => {
 
             //Horizontal push
             if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'left')){
-              entities.players[player.id].x = wallCenterX + 3;
+              entities.players[player.id].x = wallCenterX + pushValue;
             }else{
-              entities.players[player.id].x = wallCenterX - 3;
+              entities.players[player.id].x = wallCenterX - pushValue;
             }
 
             //Vertical push
             if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'left')){
-              entities.players[player.id].y = wallCenterY + 3;
+              entities.players[player.id].y = wallCenterY + pushValue;
             }else{
-              entities.players[player.id].y = wallCenterY - 3;
+              entities.players[player.id].y = wallCenterY - pushValue;
             }
           }
 
