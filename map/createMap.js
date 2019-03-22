@@ -14,7 +14,7 @@ const fs = require('fs');
 const mapString = fs.readFileSync('./map/mapString.txt', 'utf8');
 
 //Makes the string into an array
-const mapArray = mapString.split(' ');
+const mapArray = mapString.split('%');
 
 //Tile size
 const tileSize = 15;
@@ -26,7 +26,9 @@ var allWalls = [];
 
 //Creates map
 module.exports.createMap = function(arkin, callback){
-
+// for(let x = 0; x < 900/tileSize;x++){
+// fs.appendFileSync('./map/mapString.txt', '77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%ffffff&0%\n', 'utf8');
+// }
   //Removes map
   fs.unlink('./map/map.json', (err) => {
 
@@ -84,7 +86,7 @@ module.exports.createMap = function(arkin, callback){
         };
 
         //Doesn't push last tile because it is a blank string
-        if (id !== 4096){
+        if (id !== 3840){
 
           //Pushes the tile
           main.map.push(newTile);
