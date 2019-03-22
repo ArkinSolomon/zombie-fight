@@ -125,31 +125,6 @@ var zombieSpawnInterval = function(){
   return data.rules.zombieSpawnInterval;
 };
 
-//Wall collison functions
-const wallIsCollide = {
-  x: function(playerPoints, wall, which){
-    if ((playerPoints[which][0] > wall[0] && playerPoints[which][0] < wall[2])){
-      return true;
-    }else{
-      return false;
-    }
-  },
-  y: function(playerPoints, wall, which){
-    if (playerPoints[which][1] > wall[1] && playerPoints[which][1] < wall[3]){
-      return true;
-    }else{
-      return false;
-    }
-  },
-  all: function(playerPoints, wall, which){
-    if ((playerPoints[which][0] > wall[0] && playerPoints[which][0] < wall[2]) && (playerPoints[which][1] > wall[1] && playerPoints[which][1] < wall[3])){
-      return true;
-    }else{
-      return false;
-    }
-  }
-};
-
 //Easier player handling
 var players = {};
 
@@ -268,54 +243,37 @@ io.on('connection', (socket) => {
       speed = data.rules.playerSpeed;
     }
 
-    //Loops through all walls
-    for (let pWCounter in walls){
+    //Gets player plus or minus values for both x and y { minimum, maximum }
+    var playerPOrMX = plusOrMinus(player.x, 10);
+    var playerPOrMY = plusOrMinus(player.y, 10);
 
-      //Local wall { topLeftX, topLeftY, bottomRightX, bottomRightY }
-      var wall = walls[pWCounter];
+    //Creates usable data
+    var playerPoints = {
+      top: [player.x + speed + 10, playerPOrMY[0]],
+      right: [playerPOrMX[1], player.y + speed + 10],
+      bottom: [player.x + speed + 10, playerPOrMY[1]],
+      left: [playerPOrMX[0], player.y + speed + 10]
+    };
 
-      //Makes sure all variables are present
-      if (player && player.x && player.y && wall[0] && wall[1] && wall[2] && wall[3]){
-
-        //Center of wall
-        var wallCenterX = wall[0] + 15;
-        var wallCenterY = wall[1] + 15;
-
-        //Gets player plus or minus values for both x and y { minimum, maximum }
-        var playerPOrMX = plusOrMinus(player.x, 10);
-        var playerPOrMY = plusOrMinus(player.y, 10);
-
-        //Creates usable data
-        var playerPoints = {
-          top: [player.x + speed, playerPOrMY[0]],
-          right: [playerPOrMX[1], player.y + speed],
-          bottom: [player.x + speed, playerPOrMY[1]],
-          left: [playerPOrMX[0], player.y + speed]
-        };
-
-        //W
-        if (d.up && !wallIsCollide.all(playerPoints, wall, 'top')){
-          player.y -= speed;
-        }
-
-        //A
-        if (d.left) {
-          player.x -= speed;
-        }
-
-        //S
-        if (d.down) {
-          player.y += speed;
-        }
-
-        //D
-        if (d.right) {
-          player.x += speed;
-        }
-      }
+    //W
+    if (d.up && !checkCollideAllWalls(playerPoints, 'top')){
+      player.y -= speed;
     }
 
+    //A
+    if (d.left && !checkCollideAllWalls(playerPoints, 'left')) {
+      player.x -= speed;
+    }
 
+    //S
+    if (d.down && !checkCollideAllWalls(playerPoints, 'bottom')) {
+      player.y += speed;
+    }
+
+    //D
+    if (d.right && !checkCollideAllWalls(playerPoints, 'right')) {
+      player.x += speed;
+    }
 
     /* End code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
@@ -406,11 +364,11 @@ setInterval(() => {
     }
 
     //Loops through all zombies
-    for (let zZCollision = 0; zZCollision < zombieArr.length - 1; zZCollision++){
+    for (let zZcollision = 0; zZcollision < zombieArr.length - 1; zZcollision++){
 
       //Picks out two consecutive zombies
-      zombie1 = zombieArr[zZCollision];
-      zombie2 = zombieArr[zZCollision + 1];
+      zombie1 = zombieArr[zZcollision];
+      zombie2 = zombieArr[zZcollision + 1];
 
       //Makes sure all variables are present
       if ((Object.keys(entities.zombies).indexOf(zombie1.id) !== -1) && (Object.keys(entities.zombies).indexOf(zombie2.id) !== -1) && (zombie1.x && zombie1.y && zombie2.x && zombie2.y)){
@@ -474,11 +432,11 @@ setInterval(() => {
     for (let playerCounter = 0; playerCounter < playerArr.length; playerCounter++){
 
       //Loops through all zombies
-      for (let zPCollision = 0; zPCollision < zombieArr.length; zPCollision++){
+      for (let zPcollision = 0; zPcollision < zombieArr.length; zPcollision++){
 
         //Picks player and zombie
         player = playerArr[playerCounter];
-        zombie = zombieArr[zPCollision];
+        zombie = zombieArr[zPcollision];
 
         //Makes sure all variables are present
         if ((Object.keys(entities.players).indexOf(player.id) !== -1) && (Object.keys(entities.zombies).indexOf(zombie.id) !== -1) && (player.x && player.y && zombie.x && zombie.y)){
@@ -584,134 +542,6 @@ setInterval(() => {
 
   //Resets player array
   playerArr = [];
-
-  // /* Player-wall collison */
-  //
-  // //Checks if there are players
-  // if (Object.keys(entities.players).length > 0){
-  //
-  //   //Loops through all players
-  //   for (let play in entities.players){
-  //     var player = entities.players[play];
-  //
-  //     //Pushes player's position and id
-  //     playerArr.push({
-  //       x: player.x,
-  //       y: player.y,
-  //       id: play
-  //     });
-  //   }
-  //
-  //   //Loops through all walls
-  //   for (let pWCounter in walls){
-  //
-  //     //Local wall { topLeftX, topLeftY, bottomRightX, bottomRightY }
-  //     var wall = walls[pWCounter];
-  //
-  //     //Loops through all players
-  //     for (let p in playerArr){
-  //       var player = playerArr[p];
-  //
-  //       //Makes sure all variables are present
-  //       if (Object.keys(entities.players).indexOf(player.id) !== -1 && wall[0] && wall[1] && wall[2] && wall[3]){
-  //
-  //         //Center of wall
-  //         var wallCenterX = wall[0] + 15;
-  //         var wallCenterY = wall[1] + 15;
-  //
-  //         //Gets player plus or minus values for both x and y { minimum, maximum }
-  //         var playerPOrMX = plusOrMinus(player.x, 10);
-  //         var playerPOrMY = plusOrMinus(player.y, 10);
-  //
-  //         //Creates usable data
-  //         var playerPoints = {
-  //           top: [player.x, playerPOrMY[0]],
-  //           right: [playerPOrMX[1], player.y],
-  //           bottom: [player.x, playerPOrMY[1]],
-  //           left: [playerPOrMX[0], player.y]
-  //         };
-  //
-  //         const pushValue = 26;
-  //
-  //         /* Collison detection */
-  //
-  //         //Top collision
-  //         if (wallIsCollide.all(playerPoints, wall, 'top')){
-  //
-  //           // //Horizontal push
-  //           // if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'top')){
-  //           //   entities.players[player.id].x = wallCenterX + pushValue;
-  //           // }else{
-  //           //   entities.players[player.id].x = wallCenterX - pushValue;
-  //           // }
-  //
-  //           //Vertical push
-  //           if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'top')){
-  //             entities.players[player.id].y = wallCenterY + pushValue;
-  //           }else{
-  //             entities.players[player.id].y = wallCenterY - pushValue;
-  //           }
-  //
-  //       //Right collision
-  //     }else if (wallIsCollide.x(playerPoints, wall, 'right')){
-  //
-  //           // //Horizontal push
-  //           // if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'right')){
-  //           //   entities.players[player.id].x = wallCenterX + pushValue;
-  //           // }else{
-  //           //   entities.players[player.id].x = wallCenterX - pushValue;
-  //           // }
-  //
-  //           // //Vertical push
-  //           // if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'right')){
-  //           //   entities.players[player.id].y = wallCenterY + pushValue;
-  //           // }else{
-  //           //   entities.players[player.id].y = wallCenterY - pushValue;
-  //           // }
-  //
-  //       //Bottom collison
-  //     }else if (wallIsCollide.y(playerPoints, wall, 'bottom')){
-  //
-  //           // //Horizontal push
-  //           // if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'bottom')){
-  //           //   entities.players[player.id].x = wallCenterX + pushValue;
-  //           // }else{
-  //           //   entities.players[player.id].x = wallCenterX - pushValue;
-  //           // }
-  //
-  //           // //Vertical push
-  //           // if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'bottom')){
-  //           //   entities.players[player.id].y = wallCenterY + pushValue;
-  //           // }else{
-  //           //   entities.players[player.id].y = wallCenterY - pushValue;
-  //           // }
-  //
-  //         //Left collison
-  //       }else if (wallIsCollide.x(playerPoints, wall, 'left')){
-  //
-  //           // //Horizontal push
-  //           // if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'left')){
-  //           //   entities.players[player.id].x = wallCenterX + pushValue;
-  //           // }else{
-  //           //   entities.players[player.id].x = wallCenterX - pushValue;
-  //           // }
-  //
-  //           // //Vertical push
-  //           // if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'left')){
-  //           //   entities.players[player.id].y = wallCenterY + pushValue;
-  //           // }else{
-  //           //   entities.players[player.id].y = wallCenterY - pushValue;
-  //           // }
-  //         }
-  //
-  //         /* End collison detection */
-  //
-  //       }
-  //     }
-  //   }
-  // }
-  //
-  // /* End player-wall collison */
 
   //Checks if a player is dead
   for (let counter in entities.players){
@@ -886,6 +716,39 @@ function distance(a1, a2, b1, b2){
 
   //Returns the distance [ squareRoot(a^2 + b^2) ]
   return Math.sqrt(square(a) + square(b));
+}
+
+//Checks tiles in front for walls
+function checkCollideAllWalls(playerPoints, direction){
+
+  //Variable to return
+  var isWall = false;
+
+  //Loops through all walls
+  for (let pWCounter in walls){
+
+    //Local wall { topLeftX, topLeftY, bottomRightX, bottomRightY }
+    var wall = walls[pWCounter];
+
+    //Makes sure all variables are present
+    if (wall[0] && wall[1] && wall[2] && wall[3] && playerPoints && !isWall){
+
+      //Checks
+      if (wallIsCollide(playerPoints, wall, direction)){
+        isWall = true;
+      }
+    }
+  }
+  return isWall;
+}
+
+//Wall collison function
+function wallIsCollide(playerPoints, wall, which){
+  if ((playerPoints[which][0] > wall[0] && playerPoints[which][0] < wall[2]) && (playerPoints[which][1] > wall[1] && playerPoints[which][1] < wall[3])){
+    return true;
+  }else{
+    return false;
+  }
 }
 
 //Clears zombies after five minutes

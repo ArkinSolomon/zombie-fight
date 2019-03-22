@@ -14,11 +14,12 @@ const fs = require('fs');
 const mapString = fs.readFileSync('./map/mapString.txt', 'utf8');
 
 //Makes the string into an array
-const mapArray = mapString.split('.');
+const mapArray = mapString.split(' ');
 
 //Tile size
-const tileSize = 30;
-const initialNextId = 960 / 30;
+const tileSize = 15;
+const maxXTiles = 960 / tileSize;
+const initialNextId = 960 / tileSize;
 
 //Array of walls
 var allWalls = [];
@@ -60,7 +61,7 @@ module.exports.createMap = function(arkin, callback){
 
         //Resets x if nessecary and increases y if nessecary
         if (id >= nextId){
-          nextId += 32;
+          nextId += maxXTiles;
           x = 0;
           y += tileSize
         }else{
@@ -68,7 +69,7 @@ module.exports.createMap = function(arkin, callback){
         }
 
         //Removes new line
-        var tileOption = mapArray[t].replace('\n', '');
+        var tileOption = mapArray[t].replace(/(\r\n|\n|\r)/gm, '');
 
         //Splits text into an array for data
         var tileData = tileOption.split('&');
@@ -79,11 +80,11 @@ module.exports.createMap = function(arkin, callback){
           x: x,
           y: y,
           value: Number(tileData[1]),
-          color: tileData[0]
+          color: '#' + tileData[0]
         };
 
         //Doesn't push last tile because it is a blank string
-        if (id !== 960){
+        if (id !== 4096){
 
           //Pushes the tile
           main.map.push(newTile);
@@ -92,7 +93,7 @@ module.exports.createMap = function(arkin, callback){
           console.log(newTile);
         }
 
-        //Increases id
+        // Increases id
         id++;
       }
 
@@ -104,7 +105,7 @@ module.exports.createMap = function(arkin, callback){
         if (tile.value === 1){
 
           //Creates new wall { minX, minY, maxX, maxY }
-          var newWall = [tile.x, tile.y, tile.x + 30, tile.y + 30];
+          var newWall = [tile.x, tile.y, tile.x + tileSize, tile.y + tileSize];
 
           //Pushes wall
           main.walls.push(newWall);

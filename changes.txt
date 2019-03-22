@@ -1,3 +1,5 @@
 # This file lists all of the changes
 
-- 
+- Player wall collision works
+- Made map tiles 15 instead of 30 pixels
+- Started working on new map
