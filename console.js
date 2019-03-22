@@ -74,10 +74,12 @@ module.exports.start = function(){
       case 'systeminformation':
       case 'system':
       case 'si':
+        let runOnce = false;
         si.system((system) => {
           si.cpu((cpu) => {
-            console.log
-            (`
+            if (!runOnce){
+              console.log
+              (`
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-SYSTEM INFORMATION-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 Manufacturer:                 ${system.manufacturer}
 Model:                        ${system.model}
@@ -92,8 +94,10 @@ Brand:                        ${cpu.brand}
 Speed:                        ${cpu.speed}
 Cores:                        ${cpu.cores}
 Family:                       ${cpu.family}
-            `);
-            rl.prompt();
+              `);
+              rl.prompt();
+              runOnce = true;
+            }
           });
         });
         break;
@@ -203,9 +207,8 @@ stop                       exit code 0
 
     /* End checks commands*/
 
-    if (input === 'systeminformation' || input === 'si' || input === 'info' || input === 'system' || input === 'information'){
-
-    }else{
+    //Does not prompt on certain commands
+    if (input === 'systeminformation' || input === 'si' || input === 'info' || input === 'system' || input === 'information'){}else{
       rl.prompt();
     }
   });

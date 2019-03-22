@@ -89,7 +89,7 @@ server.listen(port, () => {
   console.log('Server listening on port ' + port);
 });
 
-//Main variable to be sent
+//Main data variable
 var data = {
   entities: {},
   time: {},
@@ -97,7 +97,9 @@ var data = {
     spawnZombies: true,
     spawnItems: true,
     zombieSpeed: .5,
-    zombieSpawnInterval: 10050
+    zombieSpawnInterval: 10050,
+    playerSpeed: .5,
+    playerSprintSpeed: 1
   }
 };
 
@@ -227,38 +229,38 @@ io.on('connection', (socket) => {
   /* Code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
   //Runs on movement
-  socket.on('movement', (data) => {
+  socket.on('movement', (d) => {
 
     //Initializes player x and y
     var player = players[socket.id] || {};
 
     //Checks if the player is sprinting
     var speed;
-    if (data.shift){
-        speed = 2;
+    if (d.shift){
+      speed = data.rules.playerSprintSpeed;
     }else{
-      speed = 1;
+      speed = data.rules.playerSpeed;
     }
 
     /* Key presses */
 
     //A
-    if (data.left) {
+    if (d.left) {
       player.x -= speed;
     }
 
     //W
-    if (data.up) {
+    if (d.up) {
       player.y -= speed;
     }
 
     //D
-    if (data.right) {
+    if (d.right) {
       player.x += speed;
     }
 
     //S
-    if (data.down) {
+    if (d.down) {
       player.y += speed;
     }
 

@@ -9,8 +9,8 @@ body {
 }
 
 #logo {
-  width: 960px;
-  height: auto;
+  width: auto;
+  height: 80px;
   display: block;
   margin-left: auto;
   margin-right: auto;
@@ -29,8 +29,13 @@ body {
 
 #ping-container {
   color: white;
+  display: inline;
 }
 
 #ping {
   display: center;
+}
+
+#username-container {
+  display: inline;
 }
