@@ -23,7 +23,7 @@ process.on('uncaughtException', (err) => {
 const port = 5000;
 
 //Framerate
-const fps = 1;
+const fps = 60;
 const framerate = 1000 / fps;
 
 /* End basic setup */
@@ -80,6 +80,9 @@ createMap(arkin, () => {
 
   //Starts the console
   gameConsole.start();
+
+  //Starts spawning zombies
+  spawnZombie();
 });
 
 server.listen(port, () => {
@@ -90,7 +93,12 @@ server.listen(port, () => {
 var data = {
   entities: {},
   time: {},
-  rules: {}
+  rules: {
+    spawnZombies: true,
+    spawnItems: true,
+    zombieSpeed: .5,
+    zombieSpawnInterval: 10050
+  }
 };
 
 //Keeps all entities
@@ -104,17 +112,15 @@ var entities = {
 arkin.sleep(3000);
 
 //Determines zombie speed
-var currentSpeed = .5;
 var zombieSpeed = function(){
-  currentSpeed += .000000001;
-  return currentSpeed;
+  data.rules.zombieSpeed += .0000000000001;
+  return data.rules.zombieSpeed;
 };
 
 //Determines zombie spawn times
-var count = 10000;
 var zombieSpawnInterval = function(){
-  count -= 100;
-  return count;
+  data.rules.zombieSpawnInterval -= 50;
+  return data.rules.zombieSpawnInterval;
 };
 
 //Wall collison functions
@@ -319,9 +325,12 @@ setInterval(() => {
   //Removes items after one minute
   for (let i in entities.items){
 
+    var itemDespawnTime = 60000;
+
     //Checks age
-    if (entities.items[i].id - new Date().getTime() >= 0){
-      entities.items[i].timeRemaining = new Date().getTime() - entities.items[i].timeRemaining;
+    let d = new Date().getTime();
+    if (d - entities.items[i].id >= itemDespawnTime){
+      entities.items[i].timeRemaining = Math.abs(itemDespawnTime - (d - entities.items[i].id));
       delete entities.items[i];
     }
   }
@@ -674,11 +683,6 @@ setInterval(() => {
     calcTime: new Date().getTime() - calcStart
   };
 
-  data.rules = {
-    zombieSpeed: currentSpeed,
-    zombieSpawnInterval: count
-  };
-
   //Updates data
   data.entities = entities;
   gameConsole.update(data);
@@ -711,19 +715,26 @@ setInterval(() => {
 }, framerate);
 
 //Zombie spawning
-setInterval(() => {
+function spawnZombie(){
+  setTimeout(() => {
 
-  //Makes zombie id
-  let id = `enemy${new Date().getTime()}`;
+    //Checks if zombies should be spawned
+    if (data.rules.spawnZombies){
 
-  //Creates zombie
-  entities.zombies[id] = {
-    x: Math.floor(Math.random() * 960),
-    y: Math.floor(Math.random() * 900),
-    health: 50,
-    id: id
-  }
-}, zombieSpawnInterval());
+      //Makes zombie id
+      let id = `enemy${new Date().getTime()}`;
+
+      //Creates zombie
+      entities.zombies[id] = {
+        x: Math.floor(Math.random() * 960),
+        y: Math.floor(Math.random() * 900),
+        health: 50,
+        id: id
+      }
+      spawnZombie();
+    }
+  }, zombieSpawnInterval());
+}
 
 //Pathfinding
 setInterval(() => {
@@ -837,31 +848,35 @@ setInterval(() => {
 //Spawns items
 setInterval(() => {
 
-  //Determines what the item will be
-  var type = function(){
+  //Checks rules
+  if (data.rules.spawnItems){
 
-    //Gets a random number
-    var rand = Math.floor(Math.random() * 5);
+    //Determines what the item will be
+    var type = function(){
 
-    //Picks item
-    if (rand <= 3){
-      return 'bandage';
-    }else{
-      return 'healthKit';
+      //Gets a random number
+      var rand = Math.floor(Math.random() * 5);
+
+      //Picks item
+      if (rand <= 3){
+        return 'bandage';
+      }else{
+        return 'healthKit';
+      }
     }
+
+    //Creates item
+    let i = new item(type());
+
+    //Adds item to entities
+    entities.items[i.name()] = {
+      x: i.x,
+      y: i.y,
+      item: i.item,
+      id: i.id,
+      timeRemaining: 60000
+    };
   }
-
-  //Creates item
-  let i = new item(type());
-
-  //Adds item to entities
-  entities.items[i.name()] = {
-    x: i.x,
-    y: i.y,
-    item: i.item,
-    id: i.id,
-    timeRemaining: 60000
-  };
 }, 15000);
 
 //Converts degrees to radians (Equation from Google Unit Converter)
