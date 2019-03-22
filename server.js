@@ -94,8 +94,8 @@ var data = {
   entities: {},
   time: {},
   rules: {
-    spawnZombies: true,
-    spawnItems: true,
+    spawnZombies: false,
+    spawnItems: false,
     zombieSpeed: .5,
     zombieSpawnInterval: 10050,
     playerSpeed: .25,
@@ -165,6 +165,25 @@ io.on('connection', (socket) => {
 
   //Initializes player
   socket.on('new player', (constantData) => {
+
+    //Checks for username in constant data
+    let checkUsername = function(constantData){
+      if (constantData && constantData.username){
+        return constantData.username;
+      }else{
+        return socket.id;
+      }
+    }
+
+    //Checks for color in constant data
+    let checkColor = function(constantData){
+      if (constantData && constantData.color){
+        return constantData.color;
+      }else{
+        return '#e8c28b';
+      }
+    }
+
     players[socket.id] = {
       x: 475,
       y: 450,
@@ -178,8 +197,8 @@ io.on('connection', (socket) => {
       data: {
         ip: socket.handshake.address,
         joinTime: new Date().getTime(),
-        username: constantData.username || socket.id,
-        color: constantData.color || '#e8c28b'
+        username: checkUsername(constantData),
+        color: checkColor(constantData)
       }
     };
   });
@@ -249,29 +268,54 @@ io.on('connection', (socket) => {
       speed = data.rules.playerSpeed;
     }
 
-    /* Key presses */
+    //Loops through all walls
+    for (let pWCounter in walls){
 
-    //A
-    if (d.left) {
-      player.x -= speed;
+      //Local wall { topLeftX, topLeftY, bottomRightX, bottomRightY }
+      var wall = walls[pWCounter];
+
+      //Makes sure all variables are present
+      if (player && player.x && player.y && wall[0] && wall[1] && wall[2] && wall[3]){
+
+        //Center of wall
+        var wallCenterX = wall[0] + 15;
+        var wallCenterY = wall[1] + 15;
+
+        //Gets player plus or minus values for both x and y { minimum, maximum }
+        var playerPOrMX = plusOrMinus(player.x, 10);
+        var playerPOrMY = plusOrMinus(player.y, 10);
+
+        //Creates usable data
+        var playerPoints = {
+          top: [player.x + speed, playerPOrMY[0]],
+          right: [playerPOrMX[1], player.y + speed],
+          bottom: [player.x + speed, playerPOrMY[1]],
+          left: [playerPOrMX[0], player.y + speed]
+        };
+
+        //W
+        if (d.up && !wallIsCollide.all(playerPoints, wall, 'top')){
+          player.y -= speed;
+        }
+
+        //A
+        if (d.left) {
+          player.x -= speed;
+        }
+
+        //S
+        if (d.down) {
+          player.y += speed;
+        }
+
+        //D
+        if (d.right) {
+          player.x += speed;
+        }
+      }
     }
 
-    //W
-    if (d.up) {
-      player.y -= speed;
-    }
 
-    //D
-    if (d.right) {
-      player.x += speed;
-    }
-
-    //S
-    if (d.down) {
-      player.y += speed;
-    }
-
-    /* End key presses */
 
     /* End code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
@@ -541,133 +585,133 @@ setInterval(() => {
   //Resets player array
   playerArr = [];
 
-  /* Player-wall collison */
-
-  //Checks if there are players
-  if (Object.keys(entities.players).length > 0){
-
-    //Loops through all players
-    for (let play in entities.players){
-      var player = entities.players[play];
-
-      //Pushes player's position and id
-      playerArr.push({
-        x: player.x,
-        y: player.y,
-        id: play
-      });
-    }
-
-    //Loops through all walls
-    for (let pWCounter in walls){
-
-      //Local wall { topLeftX, topLeftY, bottomRightX, bottomRightY }
-      var wall = walls[pWCounter];
-
-      //Loops through all players
-      for (let p in playerArr){
-        var player = playerArr[p];
-
-        //Makes sure all variables are present
-        if (Object.keys(entities.players).indexOf(player.id) !== -1 && wall[0] && wall[1] && wall[2] && wall[3]){
-
-          //Center of wall
-          var wallCenterX = wall[0] + 15;
-          var wallCenterY = wall[1] + 15;
-
-          //Gets player plus or minus values for both x and y { minimum, maximum }
-          var playerPOrMX = plusOrMinus(player.x, 10);
-          var playerPOrMY = plusOrMinus(player.y, 10);
-
-          //Creates usable data
-          var playerPoints = {
-            top: [player.x, playerPOrMY[1]],
-            right: [playerPOrMX[1], player.y],
-            bottom: [player.x, playerPOrMY[0]],
-            left: [playerPOrMX[0], player.y]
-          };
-
-          const pushValue = 26;
-
-          /* Collison detection */
-
-          //Top collision
-          if (wallIsCollide.all(playerPoints, wall, 'top')){
-
-            //Horizontal push
-            if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'top')){
-              entities.players[player.id].x = wallCenterX + pushValue;
-            }else{
-              entities.players[player.id].x = wallCenterX - pushValue;
-            }
-
-            //Vertical push
-            if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'top')){
-              entities.players[player.id].y = wallCenterY + pushValue;
-            }else{
-              entities.players[player.id].y = wallCenterY - pushValue;
-            }
-
-        //Right collision
-        }else if (wallIsCollide.all(playerPoints, wall, 'right')){
-
-            //Horizontal push
-            if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'right')){
-              entities.players[player.id].x = wallCenterX + pushValue;
-            }else{
-              entities.players[player.id].x = wallCenterX - pushValue;
-            }
-
-            //Vertical push
-            if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'right')){
-              entities.players[player.id].y = wallCenterY + pushValue;
-            }else{
-              entities.players[player.id].y = wallCenterY - pushValue;
-            }
-
-        //Bottom collison
-        }else if (wallIsCollide.all(playerPoints, wall, 'bottom')){
-
-            //Horizontal push
-            if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'bottom')){
-              entities.players[player.id].x = wallCenterX + pushValue;
-            }else{
-              entities.players[player.id].x = wallCenterX - pushValue;
-            }
-
-            //Vertical push
-            if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'bottom')){
-              entities.players[player.id].y = wallCenterY + pushValue;
-            }else{
-              entities.players[player.id].y = wallCenterY - pushValue;
-            }
-
-          //Left collison
-        }else if (wallIsCollide.all(playerPoints, wall, 'left')){
-
-            //Horizontal push
-            if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'left')){
-              entities.players[player.id].x = wallCenterX + pushValue;
-            }else{
-              entities.players[player.id].x = wallCenterX - pushValue;
-            }
-
-            //Vertical push
-            if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'left')){
-              entities.players[player.id].y = wallCenterY + pushValue;
-            }else{
-              entities.players[player.id].y = wallCenterY - pushValue;
-            }
-          }
-
-          /* End collison detection */
-
-        }
-      }
-    }
-  }
-
-  /* End player-wall collison */
+  // /* Player-wall collison */
+  //
+  // //Checks if there are players
+  // if (Object.keys(entities.players).length > 0){
+  //
+  //   //Loops through all players
+  //   for (let play in entities.players){
+  //     var player = entities.players[play];
+  //
+  //     //Pushes player's position and id
+  //     playerArr.push({
+  //       x: player.x,
+  //       y: player.y,
+  //       id: play
+  //     });
+  //   }
+  //
+  //   //Loops through all walls
+  //   for (let pWCounter in walls){
+  //
+  //     //Local wall { topLeftX, topLeftY, bottomRightX, bottomRightY }
+  //     var wall = walls[pWCounter];
+  //
+  //     //Loops through all players
+  //     for (let p in playerArr){
+  //       var player = playerArr[p];
+  //
+  //       //Makes sure all variables are present
+  //       if (Object.keys(entities.players).indexOf(player.id) !== -1 && wall[0] && wall[1] && wall[2] && wall[3]){
+  //
+  //         //Center of wall
+  //         var wallCenterX = wall[0] + 15;
+  //         var wallCenterY = wall[1] + 15;
+  //
+  //         //Gets player plus or minus values for both x and y { minimum, maximum }
+  //         var playerPOrMX = plusOrMinus(player.x, 10);
+  //         var playerPOrMY = plusOrMinus(player.y, 10);
+  //
+  //         //Creates usable data
+  //         var playerPoints = {
+  //           top: [player.x, playerPOrMY[0]],
+  //           right: [playerPOrMX[1], player.y],
+  //           bottom: [player.x, playerPOrMY[1]],
+  //           left: [playerPOrMX[0], player.y]
+  //         };
+  //
+  //         const pushValue = 26;
+  //
+  //         /* Collison detection */
+  //
+  //         //Top collision
+  //         if (wallIsCollide.all(playerPoints, wall, 'top')){
+  //
+  //           // //Horizontal push
+  //           // if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'top')){
+  //           //   entities.players[player.id].x = wallCenterX + pushValue;
+  //           // }else{
+  //           //   entities.players[player.id].x = wallCenterX - pushValue;
+  //           // }
+  //
+  //           //Vertical push
+  //           if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'top')){
+  //             entities.players[player.id].y = wallCenterY + pushValue;
+  //           }else{
+  //             entities.players[player.id].y = wallCenterY - pushValue;
+  //           }
+  //
+  //       //Right collision
+  //     }else if (wallIsCollide.x(playerPoints, wall, 'right')){
+  //
+  //           // //Horizontal push
+  //           // if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'right')){
+  //           //   entities.players[player.id].x = wallCenterX + pushValue;
+  //           // }else{
+  //           //   entities.players[player.id].x = wallCenterX - pushValue;
+  //           // }
+  //
+  //           // //Vertical push
+  //           // if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'right')){
+  //           //   entities.players[player.id].y = wallCenterY + pushValue;
+  //           // }else{
+  //           //   entities.players[player.id].y = wallCenterY - pushValue;
+  //           // }
+  //
+  //       //Bottom collison
+  //     }else if (wallIsCollide.y(playerPoints, wall, 'bottom')){
+  //
+  //           // //Horizontal push
+  //           // if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'bottom')){
+  //           //   entities.players[player.id].x = wallCenterX + pushValue;
+  //           // }else{
+  //           //   entities.players[player.id].x = wallCenterX - pushValue;
+  //           // }
+  //
+  //           // //Vertical push
+  //           // if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'bottom')){
+  //           //   entities.players[player.id].y = wallCenterY + pushValue;
+  //           // }else{
+  //           //   entities.players[player.id].y = wallCenterY - pushValue;
+  //           // }
+  //
+  //         //Left collison
+  //       }else if (wallIsCollide.x(playerPoints, wall, 'left')){
+  //
+  //           // //Horizontal push
+  //           // if (player.x > wallCenterX && wallIsCollide.x(playerPoints, wall, 'left')){
+  //           //   entities.players[player.id].x = wallCenterX + pushValue;
+  //           // }else{
+  //           //   entities.players[player.id].x = wallCenterX - pushValue;
+  //           // }
+  //
+  //           // //Vertical push
+  //           // if (player.y > wallCenterY && wallIsCollide.y(playerPoints, wall, 'left')){
+  //           //   entities.players[player.id].y = wallCenterY + pushValue;
+  //           // }else{
+  //           //   entities.players[player.id].y = wallCenterY - pushValue;
+  //           // }
+  //         }
+  //
+  //         /* End collison detection */
+  //
+  //       }
+  //     }
+  //   }
+  // }
+  //
+  // /* End player-wall collison */
 
   //Checks if a player is dead
   for (let counter in entities.players){
