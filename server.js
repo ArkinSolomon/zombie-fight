@@ -98,8 +98,8 @@ var data = {
     spawnItems: true,
     zombieSpeed: .5,
     zombieSpawnInterval: 10050,
-    playerSpeed: .5,
-    playerSprintSpeed: 1
+    playerSpeed: .25,
+    playerSprintSpeed: .5
   }
 };
 
@@ -115,7 +115,7 @@ arkin.sleep(3000);
 
 //Determines zombie speed
 var zombieSpeed = function(){
-  data.rules.zombieSpeed += .0000000000001;
+  data.rules.zombieSpeed += .0000000000000001;
   return data.rules.zombieSpeed;
 };
 
@@ -164,12 +164,13 @@ io.on('connection', (socket) => {
   });
 
   //Initializes player
-  socket.on('new player', (name) => {
+  socket.on('new player', (constantData) => {
     players[socket.id] = {
       x: 475,
       y: 450,
       health: 100,
       damage: false,
+      dead: false,
       items: {
         healthKit: 0,
         bandage: 0
@@ -177,10 +178,9 @@ io.on('connection', (socket) => {
       data: {
         ip: socket.handshake.address,
         joinTime: new Date().getTime(),
-        username: name || socket.id,
-        color: '#e8c28b'
-      },
-      dead: false
+        username: constantData.username || socket.id,
+        color: constantData.color || '#e8c28b'
+      }
     };
   });
 
@@ -225,6 +225,12 @@ io.on('connection', (socket) => {
   //Updates usernames
   socket.on('username', (username) => {
     entities.players[socket.id].data.username = username;
+  });
+
+  //Updates color
+  socket.on('color', (color) => {
+    console.log(color)
+    entities.players[color.socket].data.color = '#' + color.hex;
   });
 
   /* Code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */

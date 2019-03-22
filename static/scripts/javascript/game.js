@@ -17,8 +17,9 @@ var thisSocket;
 //Stores map
 var map;
 
-//Stores username across deaths
-var thisUsername;
+//Stores data across deaths
+var thisUsername = thisSocket;
+var thisColor = '#e8c28b';
 
 //Stores framerate
 var framerate;
@@ -157,15 +158,15 @@ socket.on('update', function(dataFromServer){
   //Simplifies entities
   entities = d.entities;
 
-  //console.log(d.time.calcTime);
+  //Renders map
+  render(ctx);
 
   //Writes ping
   const ping = new Date().getTime() - d.time.ms;
-  document.getElementById('ping').innerHTML = '';
-  document.getElementById('ping').innerHTML = ping;
-
-  //Renders map
-  render(ctx);
+  ctx.font = '15px Arial';
+  ctx.fillStyle = 'white';
+  ctx.textAlign = 'right';
+  ctx.fillText("Ping: " + ping, canvas.width - 10, 16);
 
   //Draws health bar
   ctx.strokeStyle = 'black';
@@ -194,7 +195,6 @@ socket.on('update', function(dataFromServer){
   //Loops through players
   for (let id in entities.players){
     var player = new user(entities.players[id], circle, ctx);
-    //console.log(entities.players[id]);
     player.draw();
   }
 
@@ -336,16 +336,31 @@ function handle(e){
   e.target.removeEventListener(e.type, arguments.callee);
 
   //Checks to see if the player has a username
-  let name = function(){
+  let constantData = function(){
+
+    //Object to return
+    let toReturn = {};
+
+    //Checks for username
     if (thisUsername){
-      return thisUsername;
+      toReturn.username = thisUsername;
     }else{
-      return undefined;
+      toReturn.username = undefined;
     }
+
+    //Checks for color
+    if (thisColor){
+      toReturn.color = thisColor;
+    }else{
+      toReturn.color = undefined;
+    }
+
+    //Returns data
+    return toReturn;
   };
 
   //Adds new player
-  socket.emit('new player', name());
+  socket.emit('new player', constantData());
   dead = false;
 }
 
@@ -366,6 +381,20 @@ function render(ctx){
 function updateUsername(){
   thisUsername = document.getElementById('username').value;
   socket.emit('username', thisUsername);
+}
+
+//Updates user color
+function updateColor(hex){
+  thisColor = '#' + hex;
+  sendColor(hex);
+}
+
+//Sends color to server
+function sendColor(hex){
+  socket.emit('color', {
+    hex: hex,
+    socket: thisSocket
+  });
 }
 
 //Health kit class
@@ -425,6 +454,7 @@ class user {
   }
 
   draw(){
+    console.log(this.color);
     this.circle(this.x, this.y, 10, this.color, 'black', this.ctx);
     this.ctx.font = "12px Arial";
     this.ctx.textAlign = 'center';

@@ -9,17 +9,25 @@
   </head>
   <body>
     <img src="/static/images/logo.png" id="logo"></img>
-    <div id="ping-container">
-      <p>Ping: <b><span id="ping"></span></b></p>
-    </div>
-    <div id="username-container">
-      <p id="username-label">Enter a new username: </p>
-      <input id="username" type="text" name="userName" placeholder="Username"></input>
-      <button onclick="updateUsername()" id="username-update">Update Username</button>
-    </div>
-    <div id="canvas-container">
-      <canvas id="canvas"></canvas>
+    <div id="body-container">
+      <div id="left-container">
+        <div id="username-container">
+          <p id="username-label" style="color: white;">Enter a new username: </p>
+          <input id="username" type="text" name="userName" placeholder="Username"></input>
+          <div id="username-button-container">
+            <button onclick="updateUsername()" id="username-update">Update Username</button>
+          </div>
+        </div>
+        <div id="color-picker-container">
+          <p id="color-picker-label" style="color: white;">Change your color<br>(updates after respawn): </p>
+          <input class="jscolor" onchange="updateColor(this.jscolor)" value="e8c28b">
+        </div>
+      </div>
+      <div id="canvas-container">
+        <canvas id="canvas"></canvas>
+      </div>
     </div>
   </body>
+  <script src="/static/scripts/javascript/jscolor.js"></script>
   <script src="/static/scripts/javascript/game.js"></script>
 </html>

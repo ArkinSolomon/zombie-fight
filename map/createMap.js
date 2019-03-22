@@ -119,7 +119,7 @@ module.exports.createMap = function(arkin, callback){
       fs.writeFileSync('./map/walls.json', JSON.stringify(main.walls), 'utf8');
 
       //Logs the time it took
-      console.log(`Map rendered: ${main.map.length + main.walls.length} values written in ${(new Date().getTime() - start) / 1000} seconds`);
+      console.log(`Map parsed: ${main.map.length + main.walls.length} values written in ${(new Date().getTime() - start) / 1000} seconds`);
 
       callback();
     });

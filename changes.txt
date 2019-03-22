@@ -1,0 +1,5 @@
+# This file lists all of the changes
+
+- Moved ping to canvas
+- Changed console logs
+- Worked on color picking

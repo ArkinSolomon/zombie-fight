@@ -16,6 +16,11 @@ body {
   margin-right: auto;
 }
 
+#body-container {
+  padding-top: 8px;
+  position: relative;
+}
+
 #canvas {
   width: 960px;
   height: 900px;
@@ -27,15 +32,19 @@ body {
   display: block;
 }
 
-#ping-container {
-  color: white;
-  display: inline;
+#left-container {
+  display: inline-block;
+  position: absolute;
 }
 
-#ping {
-  display: center;
+#username-button-container {
+  padding-top: 3px;
 }
 
-#username-container {
-  display: inline;
+#username-update {
+  display: block;
+}
+
+#color-picker-container {
+  padding-top: 12px;
 }
