@@ -76,7 +76,17 @@ module.exports.start = function(){
       case 'si':
         let runOnce = false;
         si.system((system) => {
+          for (let systemCounter in system){
+            if (system[systemCounter] === 'Default string'){
+              system[systemCounter] = '---------';
+            }
+          }
           si.cpu((cpu) => {
+            for (let cpuCounter in cpu){
+              if (cpu[cpuCounter] === 'Default string'){
+                cpu[cpuCounter] = '---------';
+              }
+            }
             if (!runOnce){
               console.log
               (`
