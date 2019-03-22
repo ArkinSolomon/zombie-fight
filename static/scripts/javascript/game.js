@@ -17,6 +17,9 @@ var thisSocket;
 //Stores map
 var map;
 
+//Stores username across deaths
+var thisUsername;
+
 //Stores framerate
 var framerate;
 
@@ -332,8 +335,17 @@ function handle(e){
   //Removes event
   e.target.removeEventListener(e.type, arguments.callee);
 
+  //Checks to see if the player has a username
+  let name = function(){
+    if (thisUsername){
+      return thisUsername;
+    }else{
+      return undefined;
+    }
+  };
+
   //Adds new player
-  socket.emit('new player');
+  socket.emit('new player', name());
   dead = false;
 }
 
@@ -352,13 +364,8 @@ function render(ctx){
 
 //Sends player username to server
 function updateUsername(){
-  socket.emit('username', document.getElementById('username').value);
-}
-
-//Clears all zombies on screen (Developer)
-function zClear(){
-  socket.emit('clear zombies');
-  return 'Cleared Zombies';
+  thisUsername = document.getElementById('username').value;
+  socket.emit('username', thisUsername);
 }
 
 //Health kit class
@@ -410,6 +417,7 @@ class user {
     this.y = player.y;
     this.circle = circle;
     this.ctx = ctx;
+    this.color = player.data.color;
     this.player = player;
     if (player && player.data && player.data.username){
       this.username = player.data.username;
@@ -417,7 +425,7 @@ class user {
   }
 
   draw(){
-    this.circle(this.x, this.y, 10, '#e8c28b', 'black', this.ctx);
+    this.circle(this.x, this.y, 10, this.color, 'black', this.ctx);
     this.ctx.font = "12px Arial";
     this.ctx.textAlign = 'center';
     this.ctx.fillStyle = '#40f1f7';

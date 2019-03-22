@@ -164,7 +164,7 @@ io.on('connection', (socket) => {
   });
 
   //Initializes player
-  socket.on('new player', () => {
+  socket.on('new player', (name) => {
     players[socket.id] = {
       x: 475,
       y: 450,
@@ -177,7 +177,8 @@ io.on('connection', (socket) => {
       data: {
         ip: socket.handshake.address,
         joinTime: new Date().getTime(),
-        username: socket.id
+        username: name || socket.id,
+        color: '#e8c28b'
       },
       dead: false
     };
@@ -276,16 +277,11 @@ io.on('connection', (socket) => {
     }else if (player.x < 0){
       player.x = 0;
     }else if (player.y < 0){
-      player.y = 0;
+      player.y = .1;
     }
 
     //Updates players
     players[socket.id] = player;
-  });
-
-  //Clears zombies (Developer only)
-  socket.on('clear zombies', () => {
-    entities.zombies = {};
   });
 
   //Removes players on disconnect
