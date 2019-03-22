@@ -1,4 +1,3 @@
 node_modules/
-map/map.json
-map/walls.json
+map/*.json
 logs/
