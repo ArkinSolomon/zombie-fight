@@ -11,7 +11,7 @@ const start = new Date().getTime();
 const fs = require('fs');
 
 //Gets map string
-const mapString = fs.readFileSync('./map/mapString.txt', 'utf8');
+const mapString = fs.readFileSync('./map/map.zfms', 'utf8');
 
 //Makes the string into an array
 const mapArray = mapString.split('%');
@@ -26,18 +26,16 @@ var allWalls = [];
 
 //Creates map
 module.exports.createMap = function(arkin, callback){
-// for(let x = 0; x < 900/tileSize;x++){
-// fs.appendFileSync('./map/mapString.txt', '77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%77d655&0%ffffff&0%\n', 'utf8');
-// }
+
   //Removes map
-  fs.unlink('./map/map.json', (err) => {
+  fs.unlink('./map/map.zfm', (err) => {
 
     //Catches error not found
     if (err){
       console.log(`MAP FILE NOT FOUND. SKIPING DELETION`);
     }
 
-    fs.unlink('./map/walls.json', (err) =>{
+    fs.unlink('./map/walls.zfm', (err) =>{
 
       //Catches error not found
       if (err){
@@ -118,8 +116,8 @@ module.exports.createMap = function(arkin, callback){
       }
 
       //Writes map and walls to json files
-      fs.writeFileSync('./map/map.json', JSON.stringify(main.map), 'utf8');
-      fs.writeFileSync('./map/walls.json', JSON.stringify(main.walls), 'utf8');
+      fs.writeFileSync('./map/map.zfm', JSON.stringify(main.map), 'utf8');
+      fs.writeFileSync('./map/walls.zfm', JSON.stringify(main.walls), 'utf8');
 
       //Logs the time it took
       console.log(`Map parsed: ${main.map.length + main.walls.length} values written in ${(new Date().getTime() - start) / 1000} seconds`);

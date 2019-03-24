@@ -75,8 +75,8 @@ var map;
 
 //Creates tiles
 createMap(arkin, () => {
-  walls = JSON.parse(fs.readFileSync('./map/walls.json'));
-  map = JSON.parse(fs.readFileSync('./map/map.json', 'utf8'));
+  walls = JSON.parse(fs.readFileSync('./map/walls.zfm'));
+  map = JSON.parse(fs.readFileSync('./map/map.zfm', 'utf8'));
 
   //Starts the console
   gameConsole.start();

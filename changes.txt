@@ -1,4 +1,0 @@
-# This file lists all of the changes
-
-- Fixed map string
-- Started working on airport map
