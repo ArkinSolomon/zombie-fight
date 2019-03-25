@@ -9,6 +9,10 @@ const readline = require('readline');
 const arkin = require('arkin');
 const si = require('systeminformation');
 
+//Internal modules
+const {createMap} = require('./map/createMap.js');
+const server = require('./server.js');
+
 //Where the data is stored
 var data = {};
 
@@ -68,6 +72,11 @@ module.exports.start = function(){
       case 'timestamp': //Displays timestamp
       case 'time':
         console.log('\x1b[35m', data.time.timestamp, '\x1b[0m');
+        break;
+      case 'render':
+        console.log('Rendering map');
+        arkin.sleep(1000);
+        createMap(sendMap);
         break;
       case 'info': //Displays hardware information
       case 'information':
@@ -227,4 +236,9 @@ stop                       exit code 0
 //Updates data
 module.exports.update = function(sent){
   data = sent;
+}
+
+//Sends map render
+function sendMap(){
+  server.c.emit('render');
 }

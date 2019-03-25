@@ -48,6 +48,11 @@ const app = express();
 const server = http.Server(app);
 const io = socketIO(server);
 
+//Emiter
+const EventEmitter = require('events').EventEmitter;
+const c = new EventEmitter;
+module.exports.c = c;
+
 //Starts server
 app.set('port', port);
 app.use('/static', express.static(__dirname + '/static'));
@@ -74,7 +79,7 @@ var walls;
 var map;
 
 //Creates tiles
-createMap(arkin, () => {
+createMap(() => {
   walls = JSON.parse(fs.readFileSync('./map/walls.zfm'));
   map = JSON.parse(fs.readFileSync('./map/map.zfm', 'utf8'));
 
@@ -116,11 +121,24 @@ var players = {};
 //Socket specific instructions
 io.on('connection', (socket) => {
 
-  //Gives player socket id
+  //Gives player game data
   socket.emit('get data', {
     map: JSON.stringify(map),
     socketId: socket.id,
     framerate: framerate
+  });
+
+  //Renders map on console command
+  c.on('render', () => {
+    walls = JSON.parse(fs.readFileSync('./map/walls.zfm'));
+    map = JSON.parse(fs.readFileSync('./map/map.zfm', 'utf8'));
+
+    //Gives player game data
+    socket.emit('get data', {
+      map: JSON.stringify(map),
+      socketId: socket.id,
+      framerate: framerate
+    });
   });
 
   //Initializes player

@@ -4,14 +4,9 @@
 *
 */
 
-//Gets time
-const start = new Date().getTime();
-
 //External modules
 const fs = require('fs');
-
-//Gets map string
-const mapString = fs.readFileSync('./map/map.zfms', 'utf8');
+const arkin = require('arkin');
 
 //Makes the string into an array
 const mapArray = mapString.split('%');
@@ -25,7 +20,13 @@ const initialNextId = maxXTiles;
 var allWalls = [];
 
 //Creates map
-module.exports.createMap = function(arkin, callback){
+module.exports.createMap = function(callback){
+
+  //Gets time
+  const start = new Date().getTime();
+
+  //Gets map string
+  const mapString = fs.readFileSync('./map/map.zfms', 'utf8');
 
   //Removes map
   fs.unlink('./map/map.zfm', (err) => {

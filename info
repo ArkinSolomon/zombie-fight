@@ -5,11 +5,8 @@
 
 # Changes
 
-- Started working on map
-- Removed JSON map files
-- Changed username color
-- Fix bug where going to farthest right kills you
-- Added better way for difficulty increase over time
+- Worked on map
+- Added render command to console
 
 # Todo
 
