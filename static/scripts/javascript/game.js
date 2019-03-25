@@ -25,7 +25,17 @@ var thisColor = '#e8c28b';
 var framerate;
 
 //Checks if player is dead
-var dead = false;
+var dead = function(e){
+  if (typeof e === 'boolean'){
+    return e;
+  }else{
+    if (!e.players[thisSocket] || (e.players[thisSocket] && e.players[thisSocket].dead === true) || typeof e.players[thisSocket].dead === 'undefined'){
+      return true;
+    }else{
+      return false;
+    }
+  }
+};
 
 /* Code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
@@ -104,7 +114,7 @@ socket.on('dead', function(id){
   if (id === thisSocket){
 
     //Sets player to dead
-    dead = true;
+    dead(true);
   }
 });
 
@@ -194,8 +204,10 @@ socket.on('update', function(dataFromServer){
 
   //Loops through players
   for (let id in entities.players){
-    var player = new user(entities.players[id], circle, ctx);
-    player.draw();
+    if (entities.players[id]){
+      var player = new user(entities.players[id], circle, ctx);
+      player.draw();
+    }
   }
 
   //Loops through zombies
@@ -205,7 +217,7 @@ socket.on('update', function(dataFromServer){
   }
 
   //Checks if players are dead
-  if (Object.keys(entities.players).indexOf(thisSocket) === -1 || dead){
+  if (dead(entities)){
 
     //Draws death screen
     deathScreen(ctx, canvas);
@@ -361,7 +373,7 @@ function handle(e){
 
   //Adds new player
   socket.emit('new player', constantData());
-  dead = false;
+  dead(false);
 }
 
 /* End code from https://www.sitepoint.com/create-one-time-events-javascript */
@@ -454,11 +466,10 @@ class user {
   }
 
   draw(){
-    console.log(this.color);
     this.circle(this.x, this.y, 10, this.color, 'black', this.ctx);
     this.ctx.font = "12px Arial";
     this.ctx.textAlign = 'center';
-    this.ctx.fillStyle = '#40f1f7';
+    this.ctx.fillStyle = '#000000';
     if (this.username){
       ctx.fillText(this.username, this.x, this.y - 20);
     }

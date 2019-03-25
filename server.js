@@ -96,7 +96,7 @@ var data = {
   rules: {
     spawnZombies: false,
     spawnItems: false,
-    zombieSpeed: .5,
+    zombieSpeed: .4,
     zombieSpawnInterval: 10050,
     playerSpeed: .25,
     playerSprintSpeed: .5
@@ -108,21 +108,6 @@ var entities = {
   players: {},
   zombies: {},
   items: {}
-};
-
-//Waits for three seconds before continuing to make it look like the server is doing something complex in the background but it really isn't
-arkin.sleep(3000);
-
-//Determines zombie speed
-var zombieSpeed = function(){
-  data.rules.zombieSpeed += .0000000000000001;
-  return data.rules.zombieSpeed;
-};
-
-//Determines zombie spawn times
-var zombieSpawnInterval = function(){
-  data.rules.zombieSpawnInterval -= 50;
-  return data.rules.zombieSpawnInterval;
 };
 
 //Easier player handling
@@ -545,7 +530,7 @@ setInterval(() => {
 
   //Checks if a player is dead
   for (let counter in entities.players){
-    if (entities.players[counter].dead || !entities.players[counter].x){
+    if (entities.players[counter].dead){
       delete entities.players[counter];
     }
   }
@@ -599,6 +584,8 @@ function spawnZombie(){
     //Checks if zombies should be spawned
     if (data.rules.spawnZombies){
 
+      data.rules.zombieSpawnInterval -= 50;
+
       //Makes zombie id
       let id = `enemy${new Date().getTime()}`;
 
@@ -609,10 +596,15 @@ function spawnZombie(){
         health: 50,
         id: id
       }
-      spawnZombie();
     }
-  }, zombieSpawnInterval());
+    spawnZombie();
+  }, data.rules.zombieSpawnInterval);
 }
+
+//Increases zombie speed
+setInterval(() => {
+  data.rules.zombieSpeed += .02;
+}, 30000);
 
 //Pathfinding
 setInterval(() => {
@@ -622,7 +614,7 @@ setInterval(() => {
     var zombie = entities.zombies[zomb];
 
     //Finds the nearest player
-    var player = findClosestPlayer(zombie).data
+    var player = findClosestPlayer(zombie).data;
 
     //Makes sure all variables are present
     if (Object.keys(entities.players).length > 0 && Object.keys(entities.zombies).length > 0 && player && zombie && player.x && player.y && zombie.x && zombie.y){
@@ -634,7 +626,7 @@ setInterval(() => {
       var sides = {
         a: null,
         b: null,
-        c: zombieSpeed()
+        c: data.rules.zombieSpeed
       }
 
       //Finds side a [ sin(slopeAngle) * hypotenuse ]
@@ -667,7 +659,7 @@ setInterval(() => {
       entities.zombies[zombie.id].calculations = {
         a: 'NO PLAYER',
         b: 'NO PLAYER',
-        c: zombieSpeed()
+        c: data.rules.zombieSpeed
       };
     }
   }
@@ -789,6 +781,36 @@ setInterval(() => {
     };
   }
 }, 15000);
+
+//Player x and y movement
+function movePlayer(player, speed, direction){
+
+  //Checks if all variables are present
+  if (player.x && player.y && speed){
+
+    //Variable that stores sides
+    let movement = {
+      x: null,
+      y: null
+    };
+
+    //Gets x side [ abs(pi / 4 * speed) ]
+    movement.x =  Math.abs((Math.PI / 4) * speed);
+
+    //Gets y side [ squareRoot(speed^2 - x^2) ]
+    movement.y = Math.sqrt(square(speed) - square(movement.x));
+
+    //Determines direction of travel and returns
+    switch (direction) {
+      case 'topLeft':
+        return []
+        break;
+      case 'topRight':
+        break;
+
+    }
+  }
+}
 
 //Converts degrees to radians (Equation from Google Unit Converter)
 function toRad(deg) {

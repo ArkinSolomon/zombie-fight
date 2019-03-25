@@ -1,4 +1,4 @@
------This file lists all of the changes and information about the server-----
+-----This file lists all of the changes and information about the server as well as the TODO-----
 # Information
 
 - Zombie-fight
@@ -6,4 +6,15 @@
 # Changes
 
 - Started working on map
-- Removed JSON maps
+- Removed JSON map files
+- Changed username color
+- Fix bug where going to farthest right kills you
+- Added better way for difficulty increase over time
+
+# Todo
+
+- Make a map
+- Fix error on color change
+- Fix bug where console does not delete players
+- Add weapons to the game
+- Add zombie-wall collosions

@@ -78,13 +78,13 @@ module.exports.start = function(){
         si.system((system) => {
           for (let systemCounter in system){
             if (system[systemCounter] === 'Default string'){
-              system[systemCounter] = '---------';
+              system[systemCounter] = '-';
             }
           }
           si.cpu((cpu) => {
             for (let cpuCounter in cpu){
               if (cpu[cpuCounter] === 'Default string'){
-                cpu[cpuCounter] = '---------';
+                cpu[cpuCounter] = '-';
               }
             }
             if (!runOnce){

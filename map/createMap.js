@@ -19,7 +19,7 @@ const mapArray = mapString.split('%');
 //Tile size
 const tileSize = 15;
 const maxXTiles = 960 / tileSize;
-const initialNextId = 960 / tileSize;
+const initialNextId = maxXTiles;
 
 //Array of walls
 var allWalls = [];
