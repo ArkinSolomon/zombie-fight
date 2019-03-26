@@ -8,16 +8,10 @@
 const fs = require('fs');
 const arkin = require('arkin');
 
-//Makes the string into an array
-const mapArray = mapString.split('%');
-
 //Tile size
 const tileSize = 15;
 const maxXTiles = 960 / tileSize;
 const initialNextId = maxXTiles;
-
-//Array of walls
-var allWalls = [];
 
 //Creates map
 module.exports.createMap = function(callback){
@@ -27,6 +21,12 @@ module.exports.createMap = function(callback){
 
   //Gets map string
   const mapString = fs.readFileSync('./map/map.zfms', 'utf8');
+
+  //Makes the string into an array
+  const mapArray = mapString.split('%');
+
+  //Array of walls
+  var allWalls = [];
 
   //Removes map
   fs.unlink('./map/map.zfm', (err) => {

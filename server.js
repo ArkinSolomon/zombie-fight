@@ -144,24 +144,6 @@ io.on('connection', (socket) => {
   //Initializes player
   socket.on('new player', (constantData) => {
 
-    //Checks for username in constant data
-    let checkUsername = function(constantData){
-      if (constantData && constantData.username){
-        return constantData.username;
-      }else{
-        return socket.id;
-      }
-    }
-
-    //Checks for color in constant data
-    let checkColor = function(constantData){
-      if (constantData && constantData.color){
-        return constantData.color;
-      }else{
-        return '#e8c28b';
-      }
-    }
-
     players[socket.id] = {
       x: 475,
       y: 450,
@@ -175,8 +157,8 @@ io.on('connection', (socket) => {
       data: {
         ip: socket.handshake.address,
         joinTime: new Date().getTime(),
-        username: checkUsername(constantData),
-        color: checkColor(constantData)
+        username: (constantData.username) ? constantData.username : socket.id,
+        color: (constantData.color) ? constantData.color : '#e8c28b'
       }
     };
   });
@@ -239,12 +221,7 @@ io.on('connection', (socket) => {
     var player = players[socket.id] || {};
 
     //Checks if the player is sprinting
-    var speed;
-    if (d.shift){
-      speed = data.rules.playerSprintSpeed;
-    }else{
-      speed = data.rules.playerSpeed;
-    }
+    var speed = (d.shift) ? data.rules.playerSprintSpeed : data.rules.playerSpeed;
 
     //Gets player plus or minus values for both x and y { minimum, maximum }
     var playerPOrMX = plusOrMinus(player.x, 10);
@@ -287,7 +264,7 @@ io.on('connection', (socket) => {
       player.y = 900;
     }else if (player.x < 0){
       player.x = 0;
-    }else if (player.y < 0){
+    }else if (player.y < .1){
       player.y = .1;
     }
 

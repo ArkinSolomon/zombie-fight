@@ -1,12 +1,9 @@
------This file lists all of the changes and information about the server as well as the TODO-----
-# Information
-
-- Zombie-fight
+-----This file lists all of the changes as well as the Tod-----
 
 # Changes
 
 - Worked on map
-- Added render command to console
+- Shortened if statements
 
 # Todo
 
@@ -14,4 +11,5 @@
 - Fix error on color change
 - Fix bug where console does not delete players
 - Add weapons to the game
-- Add zombie-wall collosions
+- Add zombie-wall collision
+- Test and fix render command

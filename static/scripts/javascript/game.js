@@ -415,11 +415,7 @@ class healthKit {
     this.ctx = ctx;
     this.x = item.x;
     this.y = item.y
-    if (ratio){
-      this.ratio = ratio;
-    }else{
-      this.ratio = 1;
-    }
+    this.ratio = (ratio) ? ratio : 1;
   }
 
   draw(){
@@ -438,11 +434,7 @@ class bandage {
     this.circle = circle;
     this.x = item.x;
     this.y = item.y;
-    if (ratio){
-      this.ratio = ratio;
-    }else{
-      this.ratio = 1;
-    }
+    this.ratio = (ratio) ? ratio : 1;
   }
 
   draw(){
@@ -458,11 +450,9 @@ class user {
     this.y = player.y;
     this.circle = circle;
     this.ctx = ctx;
-    this.color = player.data.color;
+    this.color = (player.data.color) ? player.data.color : '#e8c28b';
     this.player = player;
-    if (player && player.data && player.data.username){
-      this.username = player.data.username;
-    }
+    this.username = (player.data.username) ? player.data.username : thisSocket;
   }
 
   draw(){
@@ -470,9 +460,7 @@ class user {
     this.ctx.font = "12px Arial";
     this.ctx.textAlign = 'center';
     this.ctx.fillStyle = '#000000';
-    if (this.username){
-      ctx.fillText(this.username, this.x, this.y - 20);
-    }
+    ctx.fillText(this.username, this.x, this.y - 20);
   }
 }
 
