@@ -80,18 +80,21 @@ var map;
 
 //Creates tiles
 createMap(() => {
+
+  //Parses the map
   walls = JSON.parse(fs.readFileSync('./map/walls.zfm'));
   map = JSON.parse(fs.readFileSync('./map/map.zfm', 'utf8'));
 
-  //Starts the console
-  gameConsole.start();
+  //Starts the server
+  server.listen(port, () => {
+    console.log(`Server listening on port ${port}`);
 
-  //Starts spawning zombies
-  spawnZombie();
-});
+    //Starts the console
+    gameConsole.start();
 
-server.listen(port, () => {
-  console.log('Server listening on port ' + port);
+    //Starts spawning zombies
+    spawnZombie();
+  });
 });
 
 //Main data variable
@@ -157,8 +160,8 @@ io.on('connection', (socket) => {
       data: {
         ip: socket.handshake.address,
         joinTime: new Date().getTime(),
-        username: (constantData.username) ? constantData.username : socket.id,
-        color: (constantData.color) ? constantData.color : '#e8c28b'
+        username: (constantData && constantData.username) ? constantData.username : socket.id,
+        color: (constantData && constantData.color) ? constantData.color : '#e8c28b'
       }
     };
   });
@@ -167,7 +170,7 @@ io.on('connection', (socket) => {
   socket.on('healthKit', (id) => {
 
     //Checks to see if the player has health kits and that the player has less than 100 health
-    if (entities.players[id].items.healthKit > 0 && entities.players[id].health < 100){
+    if (entities.players[id] && entities.players[id].items && entities.players[id].items.healthKit > 0 && entities.players[id].health < 100){
 
       //Removes one health kit from players inventory
       entities.players[id].items.healthKit--;
@@ -186,7 +189,7 @@ io.on('connection', (socket) => {
   socket.on('bandage', (id) => {
 
     //Checks to see if the player has bandages and that the player has less than 100 health
-    if (entities.players[id].items.bandage > 0 && entities.players[id].health < 100){
+    if (entities.players[id] && entities.players[id].items && entities.players[id].items.bandage > 0 && entities.players[id].health < 100){
 
       //Removes one bandage from players inventory
       entities.players[id].items.bandage--;
@@ -203,25 +206,28 @@ io.on('connection', (socket) => {
 
   //Updates usernames
   socket.on('username', (username) => {
-    entities.players[socket.id].data.username = username;
+    if (username && entities.players[socket.id] && entities.players[socket.id].data){
+      entities.players[socket.id].data.username = username;
+    }
   });
 
   //Updates color
   socket.on('color', (color) => {
-    console.log(color)
-    entities.players[color.socket].data.color = '#' + color.hex;
+    if (color && color.socket && entities.players[color.socket] && entities.players[color.socket].data){
+      entities.players[color.socket].data.color = '#' + color.hex;
+    }
   });
 
-  /* Code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
+  /* Modified from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
   //Runs on movement
-  socket.on('movement', (d) => {
+  socket.on('movement', (keys) => {
 
     //Initializes player x and y
     var player = players[socket.id] || {};
 
     //Checks if the player is sprinting
-    var speed = (d.shift) ? data.rules.playerSprintSpeed : data.rules.playerSpeed;
+    var speed = (keys.shift) ? data.rules.playerSprintSpeed : data.rules.playerSpeed;
 
     //Gets player plus or minus values for both x and y { minimum, maximum }
     var playerPOrMX = plusOrMinus(player.x, 10);
@@ -235,27 +241,32 @@ io.on('connection', (socket) => {
       left: [playerPOrMX[0], player.y + speed + 10]
     };
 
-    //W
-    if (d.up && !checkCollideAllWalls(playerPoints, 'top')){
+    //Up
+    if (keys.up && !checkCollideAllWalls(playerPoints, 'top') && !keys.left && !keys.right && !keys.down){
       player.y -= speed;
     }
 
-    //A
-    if (d.left && !checkCollideAllWalls(playerPoints, 'left')) {
+    //Left
+    if (keys.left && !checkCollideAllWalls(playerPoints, 'left') && !keys.up && !keys.right && !keys.down) {
       player.x -= speed;
     }
 
-    //S
-    if (d.down && !checkCollideAllWalls(playerPoints, 'bottom')) {
+    //Down
+    if (keys.down && !checkCollideAllWalls(playerPoints, 'bottom') && !keys.left && !keys.right && !keys.up) {
       player.y += speed;
     }
 
-    //D
-    if (d.right && !checkCollideAllWalls(playerPoints, 'right')) {
+    //Right
+    if (keys.right && !checkCollideAllWalls(playerPoints, 'right') && !keys.left && !keys.up && !keys.down) {
       player.x += speed;
     }
 
-    /* End code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
+    /* End modified code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
+
+    //Top left
+    if (keys.up && keys.left){
+
+    }
 
     //Player bounding
     if (player.x > 960){
@@ -300,8 +311,8 @@ setInterval(() => {
       zombie.y = 900;
     }else if (zombie.x < 0){
       zombie.x = 0;
-    }else if (zombie.y < 0){
-      zombie.y = 0;
+    }else if (zombie.y < .1){
+      zombie.y = .1;
     }
   }
 

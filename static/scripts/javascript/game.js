@@ -132,6 +132,12 @@ socket.on('get data', function(data){
   framerate = data.framerate;
 });
 
+//Checks for color update
+setInterval(function(){
+  thisColor = document.getElementById('color').value;
+  sendColor(thisColor.replace('#', ''));
+}, framerate);
+
 //Checks for movement
 setInterval(function(){
   socket.emit('movement', movement);
@@ -170,17 +176,6 @@ socket.on('update', function(dataFromServer){
 
   //Renders map
   render(ctx);
-
-  //Writes ping
-  const ping = new Date().getTime() - d.time.ms;
-  ctx.font = '15px Arial';
-  ctx.fillStyle = 'white';
-  ctx.textAlign = 'right';
-  ctx.fillText("Ping: " + ping, canvas.width - 10, 16);
-
-  //Draws health bar
-  ctx.strokeStyle = 'black';
-  ctx.rect(10, 10, 100, 10);
 
   /* Item counters */
 
@@ -223,6 +218,22 @@ socket.on('update', function(dataFromServer){
     deathScreen(ctx, canvas);
   }else{
 
+    //Writes ping
+    const ping = new Date().getTime() - d.time.ms;
+    ctx.font = '15px Arial';
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'right';
+    ctx.fillText("Ping: " + ping, canvas.width - 10, 16);
+
+    //Writes username
+    ctx.font = '38px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(thisUsername, canvas.width / 2, canvas.height - 30);
+
+    //Draws health bar
+    ctx.strokeStyle = 'black';
+    ctx.rect(10, 10, 100, 10);
+
     //Updates health
     updateHealth(ctx);
 
@@ -255,7 +266,7 @@ function updateHealth(ctx){
   //Border
   ctx.rect(10, 10, 100, 10);
   ctx.stroke();
-  ctx.fillRect(11, 11, getHealthLength(entities.players[thisSocket].health), 8);
+  ctx.fillRect(11, 11, (entities.players[thisSocket] && entities.players[thisSocket].health) ? getHealthLength(entities.players[thisSocket].health, false) : .0000000000000001, 8);
 
   /* Text styling */
 
@@ -265,15 +276,15 @@ function updateHealth(ctx){
   /* End text styling */
 
   //Text
-  ctx.fillText(entities.players[thisSocket].health, 20, 18);
+  ctx.fillText((entities.players[thisSocket] && entities.players[thisSocket].health) ? getHealthLength(entities.players[thisSocket].health, true)  : '0', 20, 18);
 }
 
 //Returns percentage of health to fill
-function getHealthLength(health){
+function getHealthLength(health, text){
   if (health < 98){
     return health;
   }else{
-    return 98;
+    return (text) ? 100 : 98;
   }
 }
 
@@ -344,36 +355,19 @@ function deathScreen(ctx, canvas){
 //Removes event after one click
 function handle(e){
 
-  //Removes event
-  e.target.removeEventListener(e.type, arguments.callee);
+  //Makes sure the player is dead
+  if (dead || !entities.players[thisSocket]){
 
-  //Checks to see if the player has a username
-  let constantData = function(){
+    //Removes event
+    e.target.removeEventListener(e.type, arguments.callee);
 
-    //Object to return
-    let toReturn = {};
-
-    //Checks for username
-    if (thisUsername){
-      toReturn.username = thisUsername;
-    }else{
-      toReturn.username = undefined;
-    }
-
-    //Checks for color
-    if (thisColor){
-      toReturn.color = thisColor;
-    }else{
-      toReturn.color = undefined;
-    }
-
-    //Returns data
-    return toReturn;
-  };
-
-  //Adds new player
-  socket.emit('new player', constantData());
-  dead(false);
+    //Adds new player
+    socket.emit('new player', {
+      username: (thisUsername) ? thisUsername : undefined,
+      color: (thisColor) ? thisColor : undefined
+    });
+    dead(false);
+  }
 }
 
 /* End code from https://www.sitepoint.com/create-one-time-events-javascript */
@@ -384,6 +378,8 @@ function render(ctx){
   //Loops through all tiles
   for (let m in map){
     var tile = map[m];
+
+    //Fills it in
     ctx.fillStyle = tile.color;
     ctx.fillRect(tile.x, tile.y, 30, 30);
   }
@@ -393,12 +389,6 @@ function render(ctx){
 function updateUsername(){
   thisUsername = document.getElementById('username').value;
   socket.emit('username', thisUsername);
-}
-
-//Updates user color
-function updateColor(hex){
-  thisColor = '#' + hex;
-  sendColor(hex);
 }
 
 //Sends color to server
@@ -450,9 +440,9 @@ class user {
     this.y = player.y;
     this.circle = circle;
     this.ctx = ctx;
-    this.color = (player.data.color) ? player.data.color : '#e8c28b';
+    this.color = (player && player.data && player.data.color) ? player.data.color : '#e8c28b';
     this.player = player;
-    this.username = (player.data.username) ? player.data.username : thisSocket;
+    this.username = (player && player.data && player.data.username) ? player.data.username : thisSocket;
   }
 
   draw(){

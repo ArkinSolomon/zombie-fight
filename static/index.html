@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>Zombie Fight</title>
     <link rel="stylesheet" href="static/stylesheets/site.css" type="text/css">
-    <link rel="shortcut icon" href="static/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="static/images/favicon.ico" type="image/x-icon">
     <script src="/socket.io/socket.io.js"></script>
   </head>
   <body>
@@ -19,8 +19,8 @@
           </div>
         </div>
         <div id="color-picker-container">
-          <p id="color-picker-label" style="color: white;">Change your color<br>(updates after respawn): </p>
-          <input class="jscolor" onchange="updateColor(this.jscolor)" value="e8c28b">
+          <p id="color-picker-label" style="color: white;">Change your color: </p>
+          <input type="color" id="color" value="#e8c28b">
         </div>
       </div>
       <div id="canvas-container">
@@ -28,6 +28,5 @@
       </div>
     </div>
   </body>
-  <script src="/static/scripts/javascript/jscolor.js"></script>
   <script src="/static/scripts/javascript/game.js"></script>
 </html>
