@@ -17,9 +17,11 @@ var thisSocket;
 //Stores map
 var map;
 
-//Stores data across deaths
-var thisUsername = thisSocket;
-var thisColor = '#e8c28b';
+//Stores data across sessions
+var thisUsername = (document.cookie.split('; ')[0] === username) ? document.cookie.split('; ')[0].replace('username=', '') : thisSocket;
+document.getElementById('username').value = (thisUsername !== thisSocket) thisUsername ? '';
+var thisColor = (document.cookie.split('; ')[1] === color) ? document.cookie.split('; ')[1].replace('color=', '') : '#e8c28b';
+document.getElementById('color').value = thisColor;
 
 //Stores framerate
 var framerate;
@@ -157,6 +159,11 @@ setInterval(function(){
     socket.emit('bandage', thisSocket);
     movement.q = false;
   }
+}, framerate);
+
+//Updates cookie
+setInterval(function(){
+  document.cookie = `username=${thisUsername}; color=${thisColor}; expires=${new Date.getTime() + (10 * 365 * 24 * 60 * 60)}; path=/`;
 }, framerate);
 
 //Canvas declaration

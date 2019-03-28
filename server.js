@@ -206,19 +206,13 @@ io.on('connection', (socket) => {
 
   //Updates usernames
   socket.on('username', (username) => {
-    if (username && entities.players[socket.id] && entities.players[socket.id].data){
-      entities.players[socket.id].data.username = username;
-    }
+      entities.players[socket.id].data.username = (username && entities.players[socket.id] && entities.players[socket.id].data) ? username : socket.id;
   });
 
   //Updates color
   socket.on('color', (color) => {
-    if (color && color.socket && entities.players[color.socket] && entities.players[color.socket].data){
-      entities.players[color.socket].data.color = '#' + color.hex;
-    }
+    entities.players[color.socket].data.color = (color && color.socket && entities.players[color.socket] && entities.players[color.socket].data) ? '#' + color.hex : '#e8c28b';
   });
-
-  /* Modified from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
   //Runs on movement
   socket.on('movement', (keys) => {
@@ -226,8 +220,9 @@ io.on('connection', (socket) => {
     //Initializes player x and y
     var player = players[socket.id] || {};
 
-    //Checks if the player is sprinting
+    //Speed
     var speed = (keys.shift) ? data.rules.playerSprintSpeed : data.rules.playerSpeed;
+    var diagonalSpeed = Math.sqrt(speed) / 2;
 
     //Gets player plus or minus values for both x and y { minimum, maximum }
     var playerPOrMX = plusOrMinus(player.x, 10);
@@ -241,32 +236,36 @@ io.on('connection', (socket) => {
       left: [playerPOrMX[0], player.y + speed + 10]
     };
 
-    //Up
+    /* Movement */
+
+    /* Modified from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
+
     if (keys.up && !checkCollideAllWalls(playerPoints, 'top') && !keys.left && !keys.right && !keys.down){
       player.y -= speed;
-    }
-
-    //Left
-    if (keys.left && !checkCollideAllWalls(playerPoints, 'left') && !keys.up && !keys.right && !keys.down) {
+    }else if (keys.left && !checkCollideAllWalls(playerPoints, 'left') && !keys.up && !keys.right && !keys.down){
       player.x -= speed;
-    }
-
-    //Down
-    if (keys.down && !checkCollideAllWalls(playerPoints, 'bottom') && !keys.left && !keys.right && !keys.up) {
+    }else if (keys.down && !checkCollideAllWalls(playerPoints, 'bottom') && !keys.left && !keys.right && !keys.up){
       player.y += speed;
-    }
-
-    //Right
-    if (keys.right && !checkCollideAllWalls(playerPoints, 'right') && !keys.left && !keys.up && !keys.down) {
+    }else if (keys.right && !checkCollideAllWalls(playerPoints, 'right') && !keys.left && !keys.up && !keys.down){
       player.x += speed;
+
+      /* End modified code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
+
+    }else if (keys.up && keys.left && !keys.down && !keys.right){
+      player.x -= diagonalSpeed;
+      player.y -= diagonalSpeed;
+    }else if (keys.up && keys.right && !keys.down && !keys.left){
+      player.x += diagonalSpeed;
+      player.y -= diagonalSpeed;
+    }else if (keys.down && keys.left && !keys.down && !keys.right){
+      player.x -= diagonalSpeed;
+      player.y += diagonalSpeed;
+    }else if (keys.down && keys.right && !keys.down && !keys.left){
+      player.x += diagonalSpeed;
+      player.y += diagonalSpeed;
     }
 
-    /* End modified code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
-
-    //Top left
-    if (keys.up && keys.left){
-
-    }
+    /* End movement */
 
     //Player bounding
     if (player.x > 960){
@@ -787,36 +786,6 @@ setInterval(() => {
     };
   }
 }, 15000);
-
-//Player x and y movement
-function movePlayer(player, speed, direction){
-
-  //Checks if all variables are present
-  if (player.x && player.y && speed){
-
-    //Variable that stores sides
-    let movement = {
-      x: null,
-      y: null
-    };
-
-    //Gets x side [ abs(pi / 4 * speed) ]
-    movement.x =  Math.abs((Math.PI / 4) * speed);
-
-    //Gets y side [ squareRoot(speed^2 - x^2) ]
-    movement.y = Math.sqrt(square(speed) - square(movement.x));
-
-    //Determines direction of travel and returns
-    switch (direction) {
-      case 'topLeft':
-        return []
-        break;
-      case 'topRight':
-        break;
-
-    }
-  }
-}
 
 //Converts degrees to radians (Equation from Google Unit Converter)
 function toRad(deg) {

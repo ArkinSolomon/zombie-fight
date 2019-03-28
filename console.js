@@ -34,12 +34,6 @@ module.exports.start = function(){
     /* Checks commands */
 
     switch(input){
-      case 'data': //Logs data to console
-      case 'log':
-      case 'print':
-        console.log('\x1b[35m\n', data.time.timestamp, '\x1b[0m');
-        console.log(require('util').inspect(data, false, null, true));
-        break;
       case 'clear zombies': //Clears all zombies
         data.entities.zombies = {};
         console.log('Cleared all zombies');
@@ -216,6 +210,20 @@ stop                       exit code 0
           }else{
             console.log("Parameter <RULE> not provided");
           }
+        }else if (input.startsWith('log') || input.startsWith('print') || input.startsWith('data')) {
+          if (input.startsWith('log ') || input.startsWith('print ') || input.startsWith('data ')){
+            var pA = input.split(' ');
+            var parameters = pA[1].split('.');
+            var currObject = JSON.stringify(data);
+            for (let p in parameters){
+              let parameter = parameters[p];
+              currObject = JSON.stringify(JSON.parse(currObject)[parameter]);
+            }
+            logAll(JSON.parse(currObject));
+          }else{
+            console.log('\x1b[35m\n', data.time.timestamp, '\x1b[0m');
+            logAll(data);
+          }
         } else if (input !== ''){
           console.log('Enter a valid command, do "help" to see all valid commads');
         }
@@ -236,6 +244,11 @@ stop                       exit code 0
 //Updates data
 module.exports.update = function(sent){
   data = sent;
+}
+
+//Logs an inspected object
+function logAll(data){
+  console.log(require('util').inspect(data, false, null, true));
 }
 
 //Sends map render
