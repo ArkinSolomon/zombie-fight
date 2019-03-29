@@ -121,7 +121,7 @@ Family:                       ${cpu.family}
 #-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-HELP-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 data,                      Logs all data to the console with a timestamp
 print,
-log
+log [path]                 Inspects a path
 
 timestamp,                 Displays timestamp
 time

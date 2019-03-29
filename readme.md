@@ -5,8 +5,8 @@
 
 #### Changes
 
-- Added better player movement
-- Added cookie functionality
+- Worked on map
+- Added error prevent error
 
 #### Future plans
 

@@ -19,7 +19,7 @@ var map;
 
 //Stores data across sessions
 var thisUsername = (document.cookie.split('; ')[0] === username) ? document.cookie.split('; ')[0].replace('username=', '') : thisSocket;
-document.getElementById('username').value = (thisUsername !== thisSocket) thisUsername ? '';
+document.getElementById('username').value = (thisUsername !== thisSocket) ? thisUsername : '';
 var thisColor = (document.cookie.split('; ')[1] === color) ? document.cookie.split('; ')[1].replace('color=', '') : '#e8c28b';
 document.getElementById('color').value = thisColor;
 
@@ -50,7 +50,7 @@ var movement = {
   shift: false,
   q: false,
   e: false
-}
+};
 
 /* Checks for key presses */
 

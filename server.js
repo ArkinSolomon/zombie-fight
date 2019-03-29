@@ -204,14 +204,18 @@ io.on('connection', (socket) => {
     }
   });
 
-  //Updates usernames
+  //Updates username
   socket.on('username', (username) => {
+    if (entities.players[color.socket] && entities.players[color.socket].data){
       entities.players[socket.id].data.username = (username && entities.players[socket.id] && entities.players[socket.id].data) ? username : socket.id;
+    }
   });
 
   //Updates color
   socket.on('color', (color) => {
-    entities.players[color.socket].data.color = (color && color.socket && entities.players[color.socket] && entities.players[color.socket].data) ? '#' + color.hex : '#e8c28b';
+    if (entities.players[color.socket] && entities.players[color.socket].data){
+      entities.players[color.socket].data.color = (color && color.socket && entities.players[color.socket] && entities.players[color.socket].data) ? '#' + color.hex : '#e8c28b';
+    }
   });
 
   //Runs on movement
