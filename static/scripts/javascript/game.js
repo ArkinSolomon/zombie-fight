@@ -14,14 +14,14 @@ var entities = {};
 //Stores socket id
 var thisSocket;
 
+//Stores username
+var thisUsername;
+
+//Data to resend if nessecary
+var resendData = {};
+
 //Stores map
 var map;
-
-//Stores data across sessions
-var thisUsername = (document.cookie.split('; ')[0] === username) ? document.cookie.split('; ')[0].replace('username=', '') : thisSocket;
-document.getElementById('username').value = (thisUsername !== thisSocket) ? thisUsername : '';
-var thisColor = (document.cookie.split('; ')[1] === color) ? document.cookie.split('; ')[1].replace('color=', '') : '#e8c28b';
-document.getElementById('color').value = thisColor;
 
 //Stores framerate
 var framerate;
@@ -134,6 +134,17 @@ socket.on('get data', function(data){
   framerate = data.framerate;
 });
 
+//Checks for socket disconnect
+setInterval(function(){
+  if (!socket.connected){
+    resend = entities.players[thisSocket];
+    thisSocket = null;
+    drawDisconnect();
+
+    socket.emit('returning player', resend);
+  }
+}, framerate);
+
 //Checks for color update
 setInterval(function(){
   thisColor = document.getElementById('color').value;
@@ -159,11 +170,6 @@ setInterval(function(){
     socket.emit('bandage', thisSocket);
     movement.q = false;
   }
-}, framerate);
-
-//Updates cookie
-setInterval(function(){
-  document.cookie = `username=${thisUsername}; color=${thisColor}; expires=${new Date.getTime() + (10 * 365 * 24 * 60 * 60)}; path=/`;
 }, framerate);
 
 //Canvas declaration
@@ -218,7 +224,7 @@ socket.on('update', function(dataFromServer){
     zombie.draw();
   }
 
-  //Checks if players are dead
+  //Checks if player is dead
   if (dead(entities)){
 
     //Draws death screen
@@ -235,7 +241,7 @@ socket.on('update', function(dataFromServer){
     //Writes username
     ctx.font = '38px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText(thisUsername, canvas.width / 2, canvas.height - 30);
+    ctx.fillText((thisUsername) ? thisUsername : thisSocket, canvas.width / 2, canvas.height - 30);
 
     //Draws health bar
     ctx.strokeStyle = 'black';
@@ -357,13 +363,13 @@ function deathScreen(ctx, canvas){
   canvas.addEventListener('click', handle);
 }
 
-/* Code from https://www.sitepoint.com/create-one-time-events-javascript */
+/* Modified code from https://www.sitepoint.com/create-one-time-events-javascript */
 
 //Removes event after one click
 function handle(e){
 
   //Makes sure the player is dead
-  if (dead || !entities.players[thisSocket]){
+  if (dead() || !entities.players[thisSocket]){
 
     //Removes event
     e.target.removeEventListener(e.type, arguments.callee);
@@ -377,7 +383,28 @@ function handle(e){
   }
 }
 
-/* End code from https://www.sitepoint.com/create-one-time-events-javascript */
+/* End modified code from https://www.sitepoint.com/create-one-time-events-javascript */
+
+//Draws disconnected screen
+function drawDisconnect(){
+
+  //Gets canvas data
+  var ctx = canvas.getContext('2d');
+
+  //Fills the screen
+  ctx.fillStyle = '#f73640';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  //Draws the image
+  let image = document.getElementById('disconnectImg');
+  ctx.drawImage(image, (canvas.width - image.width) / 2, ((canvas.height - image.height) / 2) - 100);
+
+  //Writes text
+  ctx.font = '60px Arial';
+  ctx.fillStyle = 'white';
+  ctx.textAlign = 'center';
+  ctx.fillText("Can not connect to server", canvas.width / 2, (canvas.height / 2) + 100);
+}
 
 //Renders map
 function render(ctx){
@@ -394,8 +421,10 @@ function render(ctx){
 
 //Sends player username to server
 function updateUsername(){
-  thisUsername = document.getElementById('username').value;
-  socket.emit('username', thisUsername);
+  if (document.getElementById('username').value && document.getElementById('username').value !== ''){
+    thisUsername = document.getElementById('username').value;
+    socket.emit('username', thisUsername);
+  }
 }
 
 //Sends color to server
@@ -447,16 +476,16 @@ class user {
     this.y = player.y;
     this.circle = circle;
     this.ctx = ctx;
-    this.color = (player && player.data && player.data.color) ? player.data.color : '#e8c28b';
     this.player = player;
-    this.username = (player && player.data && player.data.username) ? player.data.username : thisSocket;
+    this.color = (player && player.data && player.data.color) ? player.data.color : '#e8c28b';
+    this.username = (thisUsername) ? thisUsername : thisSocket;
   }
 
   draw(){
     this.circle(this.x, this.y, 10, this.color, 'black', this.ctx);
     this.ctx.font = "12px Arial";
     this.ctx.textAlign = 'center';
-    this.ctx.fillStyle = '#000000';
+    this.ctx.fillStyle = '#ffffff';
     ctx.fillText(this.username, this.x, this.y - 20);
   }
 }

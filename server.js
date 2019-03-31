@@ -31,6 +31,8 @@ const framerate = 1000 / fps;
 //External modules
 const arkin = require('arkin');
 const fs = require('fs');
+const os = require('os');
+const publicIp = require('public-ip');
 
 /* Code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
@@ -108,6 +110,14 @@ var data = {
     zombieSpawnInterval: 10050,
     playerSpeed: .25,
     playerSprintSpeed: .5
+  },
+  serverData: {
+    fps: fps,
+    rootDirectory: __dirname,
+    network: {
+      port: port,
+      public: {}
+    }
   }
 };
 
@@ -117,6 +127,32 @@ var entities = {
   zombies: {},
   items: {}
 };
+
+/* Modified code from nodyou's answer at https://stackoverflow.com/questions/3653065/get-local-ip-address-in-node-js */
+
+const ifaces = os.networkInterfaces();
+Object.keys(ifaces).forEach(function (ifname) {
+  var alias = 0;
+  ifaces[ifname].forEach(function (iface) {
+    if ('IPv4' !== iface.family || iface.internal !== false){
+      return;
+    }
+    if (alias >= 1){
+      data.serverData.network.local = name + ':' + alias, iface.address;
+    }else{
+      data.serverData.network.local = ifname, iface.address;
+    }
+    alias++;
+  });
+});
+
+/* End modified code from nodyou's answer at https://stackoverflow.com/questions/3653065/get-local-ip-address-in-node-js */
+
+//Gets public IPv4 and IPV6 adresses
+(async () => {
+	data.serverData.network.public.ipv4 = await publicIp.v4();
+	data.serverData.network.public.ipv6 = await publicIp.v6();
+})();
 
 //Easier player handling
 var players = {};
@@ -219,7 +255,10 @@ io.on('connection', (socket) => {
   });
 
   //Runs on movement
-  socket.on('movement', (keys) => {
+  socket.on('movement', (k) => {
+
+    //Makes a copy of the object
+    let keys = JSON.parse(JSON.stringify(k));
 
     //Initializes player x and y
     var player = players[socket.id] || {};
@@ -229,44 +268,79 @@ io.on('connection', (socket) => {
     var diagonalSpeed = Math.sqrt(speed) / 2;
 
     //Gets player plus or minus values for both x and y { minimum, maximum }
-    var playerPOrMX = plusOrMinus(player.x, 10);
-    var playerPOrMY = plusOrMinus(player.y, 10);
-
-    //Creates usable data
-    var playerPoints = {
-      top: [player.x + speed + 10, playerPOrMY[0]],
-      right: [playerPOrMX[1], player.y + speed + 10],
-      bottom: [player.x + speed + 10, playerPOrMY[1]],
-      left: [playerPOrMX[0], player.y + speed + 10]
-    };
+    var pMX = plusOrMinus(player.x, 10);
+    var pMY = plusOrMinus(player.y, 10);
 
     /* Movement */
 
+    //Creates usable data { x, y }
+    var strafePoints = {
+      top: [player.x, pMY[0] - speed],
+      right: [pMX[1] + speed, player.y],
+      bottom: [player.x, pMY[1] + speed],
+      left: [pMX[0] - speed, player.y]
+    };
+    var diagPoints = {
+      top: [player.x, pMY[0] - diagonalSpeed],
+      right: [pMX[1] + diagonalSpeed, player.y],
+      bottom: [player.x, pMY[1] + diagonalSpeed],
+      left: [pMX[0] - diagonalSpeed, player.y]
+    };
+
+    //Cancels opposite movement
+    if (keys.up && keys.down){
+      keys.up = false;
+      keys.down = false;
+    }
+    if (keys.left && keys.right){
+      keys.left = false;
+      keys.right = false;
+    }
+
     /* Modified from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
-    if (keys.up && !checkCollideAllWalls(playerPoints, 'top') && !keys.left && !keys.right && !keys.down){
+    //Strafing
+    if (keys.up && !checkCollideAllWalls(strafePoints, 'top') && !keys.left && !keys.right && !keys.down){
       player.y -= speed;
-    }else if (keys.left && !checkCollideAllWalls(playerPoints, 'left') && !keys.up && !keys.right && !keys.down){
+    }else if (keys.left && !checkCollideAllWalls(strafePoints, 'left') && !keys.up && !keys.right && !keys.down){
       player.x -= speed;
-    }else if (keys.down && !checkCollideAllWalls(playerPoints, 'bottom') && !keys.left && !keys.right && !keys.up){
+    }else if (keys.down && !checkCollideAllWalls(strafePoints, 'bottom') && !keys.left && !keys.right && !keys.up){
       player.y += speed;
-    }else if (keys.right && !checkCollideAllWalls(playerPoints, 'right') && !keys.left && !keys.up && !keys.down){
+    }else if (keys.right && !checkCollideAllWalls(strafePoints, 'right') && !keys.left && !keys.up && !keys.down){
       player.x += speed;
+    }
 
-      /* End modified code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
+    /* End modified code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
-    }else if (keys.up && keys.left && !keys.down && !keys.right){
-      player.x -= diagonalSpeed;
-      player.y -= diagonalSpeed;
+    //Diagonal movement
+    if (keys.up && keys.left && !keys.down && !keys.right){
+      if (!checkCollideAllWalls(diagPoints, 'left')){
+        player.x -= diagonalSpeed;
+      }
+      if (!checkCollideAllWalls(diagPoints, 'top')){
+        player.y -= diagonalSpeed;
+      }
     }else if (keys.up && keys.right && !keys.down && !keys.left){
-      player.x += diagonalSpeed;
-      player.y -= diagonalSpeed;
-    }else if (keys.down && keys.left && !keys.down && !keys.right){
-      player.x -= diagonalSpeed;
-      player.y += diagonalSpeed;
-    }else if (keys.down && keys.right && !keys.down && !keys.left){
-      player.x += diagonalSpeed;
-      player.y += diagonalSpeed;
+      if (!checkCollideAllWalls(diagPoints, 'right')){
+        player.x += diagonalSpeed;
+      }
+      if (!checkCollideAllWalls(diagPoints, 'top')){
+        player.y -= diagonalSpeed;
+      }
+    }else if (keys.down && keys.left && !keys.up && !keys.right){
+      if (!checkCollideAllWalls(diagPoints, 'left')){
+        player.x -= diagonalSpeed;
+      }
+      if (!checkCollideAllWalls(diagPoints, 'bottom')){
+        player.y += diagonalSpeed;
+      }
+    }else if (keys.down && keys.right && !keys.up && !keys.left){
+      if (!checkCollideAllWalls(diagPoints, 'right')){
+        player.x += diagonalSpeed;
+      }
+      if (!checkCollideAllWalls(diagPoints, 'bottom')){
+        player.y += diagonalSpeed;
+      }
     }
 
     /* End movement */
@@ -285,6 +359,12 @@ io.on('connection', (socket) => {
     //Updates players
     players[socket.id] = player;
   });
+
+  //Respawns player
+  socket.on('returning player', (resend) => {
+    delete entities.players[socket.id];
+    entities.players[socket.id] = resend;
+  })
 
   //Removes players on disconnect
   socket.on('disconnect', () => {
@@ -502,13 +582,15 @@ setInterval(() => {
     }
 
     //Loops through all players
-    playerArr.forEach((player) => {
+    for (let p in playerArr){
+      var player = playerArr[p];
 
       //Makes sure player is still in the game
       if (Object.keys(entities.players).indexOf(player.id) !== -1){
 
         //Loops through all items
-        itemArr.forEach((item) => {
+        for (let i in itemArr){
+          var item = itemArr[i];
 
           //Makes sure item is still in the game
           if (Object.keys(entities.items).indexOf(item.id) !== -1){
@@ -527,15 +609,12 @@ setInterval(() => {
               delete entities.items[item.id];
             }
           }
-        });
+        }
       }
-    });
+    }
   }
 
   /* End player-item collison */
-
-  //Resets player array
-  playerArr = [];
 
   //Checks if a player is dead
   for (let counter in entities.players){
@@ -612,7 +691,9 @@ function spawnZombie(){
 
 //Increases zombie speed
 setInterval(() => {
-  data.rules.zombieSpeed += .02;
+  if (data.rules.zombieSpawnInterval){
+    data.rules.zombieSpeed += .02;
+  }
 }, 30000);
 
 //Pathfinding

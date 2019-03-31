@@ -6,14 +6,15 @@
 #### Changes
 
 - Worked on map
-- Added error prevent error
+- Removed cookies
+- Added network data
+- Added reconnection
+- Fixed bug where username displays as undefined
 
 #### Future plans
 
 - Finish the map
 - Add weapons
 - Add zombie-wall collision
-- Test better player movement
-- Test cookie functionality
 - Fix bug where console does not remove entities
-- Fix bug where username displays as undefined
+- Fix bug where reconnection displays death screen
