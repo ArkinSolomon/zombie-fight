@@ -485,8 +485,8 @@ class user {
     this.circle = circle;
     this.ctx = ctx;
     this.player = player;
-    this.color = (player && player.data && player.data.color) ? player.data.color : '#e8c28b';
-    this.username = (thisUsername) ? thisUsername : thisSocket;
+    this.color = (entities.players[player.id] && entities.players[player.id].data && entities.players[player.id].data && entities.players[player.id].data.color) ? entities.players[player.id].data.color : '#e8c28b';
+    this.username = (entities.players[player.id] && entities.players[player.id].data && entities.players[player.id].data.username) ? entities.players[player.id].data.username : player.id;
   }
 
   draw(){

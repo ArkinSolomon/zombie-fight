@@ -755,19 +755,19 @@ setInterval(() => {
 
       }
 
-      // //Horizontal values
-      // if (zombie.x > player.x && !checkCollideAllWalls(zombiePoints, 'left') && !zombieCollide(nextPoints, 'left')){
-      //   entities.zombies[zombie.id].x -= sides.a;
-      // }else if (zombie.x < player.x && !checkCollideAllWalls(zombiePoints, 'right') && !zombieCollide(nextPoints, 'right')){
-      //   entities.zombies[zombie.id].x += sides.a;
-      // }
-      //
-      // //Vertical values
-      // if (zombie.y > player.y && !checkCollideAllWalls(zombiePoints, 'top') && !zombieCollide(nextPoints, 'top')){
-      //   entities.zombies[zombie.id].y -= sides.b;
-      // }else if (zombie.y < player.y && !checkCollideAllWalls(zombiePoints, 'bottom') && !zombieCollide(nextPoints, 'bottom')){
-      //   entities.zombies[zombie.id].y += sides.b;
-      // }
+      //Horizontal values
+      if (zombie.x > player.x && !checkCollideAllWalls(zombiePoints, 'left')){
+        entities.zombies[zombie.id].x -= sides.a;
+      }else if (zombie.x < player.x && !checkCollideAllWalls(zombiePoints, 'right')){
+        entities.zombies[zombie.id].x += sides.a;
+      }
+
+      //Vertical values
+      if (zombie.y > player.y && !checkCollideAllWalls(zombiePoints, 'top')){
+        entities.zombies[zombie.id].y -= sides.b;
+      }else if (zombie.y < player.y && !checkCollideAllWalls(zombiePoints, 'bottom')){
+        entities.zombies[zombie.id].y += sides.b;
+      }
 
       entities.zombies[zombie.id].calculations = sides;
 

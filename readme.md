@@ -19,6 +19,7 @@
 - Add weapons
 - Add advanced pathfinding
 - Make the game less difficult
+- Make all times UTC
 - Fix bug where zombies spawn in mass at end of game
 - Fix bug where console does not remove players
 - Fix bug where entities spawn in walls
