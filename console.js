@@ -80,13 +80,13 @@ module.exports.start = function(){
         let runOnce = false;
         si.system((system) => {
           for (let systemCounter in system){
-            if (system[systemCounter] === 'Default string'){
+            if (system[systemCounter] === 'Default string' || system[systemCounter] === ''){
               system[systemCounter] = '-';
             }
           }
           si.cpu((cpu) => {
             for (let cpuCounter in cpu){
-              if (cpu[cpuCounter] === 'Default string'){
+              if (cpu[cpuCounter] === 'Default string' || cpu[cpuCounter] === ''){
                 cpu[cpuCounter] = '-';
               }
             }
@@ -225,7 +225,7 @@ stop                       exit code 0
             logAll(data);
           }
         } else if (input !== ''){
-          console.log('Enter a valid command, do "help" to see all valid commads');
+          console.log('Enter a valid command or do "help" to see all valid commads');
         }
 
         /* End parameter commands */

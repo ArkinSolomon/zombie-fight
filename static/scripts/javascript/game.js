@@ -31,7 +31,7 @@ var dead = function(e){
   if (typeof e === 'boolean'){
     return e;
   }else{
-    if (!e.players[thisSocket] || (e.players[thisSocket] && e.players[thisSocket].dead === true) || typeof e.players[thisSocket].dead === 'undefined'){
+    if (!entities.players[thisSocket] || (entities.players[thisSocket] && entities.players[thisSocket].dead === true) || typeof entities.players[thisSocket].dead === 'undefined'){
       return true;
     }else{
       return false;
@@ -421,7 +421,15 @@ function render(ctx){
 
 //Sends player username to server
 function updateUsername(){
-  if (document.getElementById('username').value && document.getElementById('username').value !== ''){
+  var val = document.getElementById('username').value;
+
+  //Makes sure it is not a blank string
+  if (val && val !== '' && val.replace(/\s/g, '').length === 0){
+
+    //Limits to twenty characters
+    if (val.length > 20){
+      val = val.substring(0, 19);
+    }
     thisUsername = document.getElementById('username').value;
     socket.emit('username', thisUsername);
   }

@@ -74,7 +74,7 @@ console.log(`
    \x1b[47m\x1b[34m ################### \x1b[0m
 `);
 
-//Waits for one and a half a seconds
+//Waits for one and a half seconds
 arkin.sleep(1500);
 
 var walls;
@@ -104,9 +104,9 @@ var data = {
   entities: {},
   time: {},
   rules: {
-    spawnZombies: false,
-    spawnItems: false,
-    zombieSpeed: .4,
+    spawnZombies: true,
+    spawnItems: true,
+    zombieSpeed: .8,
     zombieSpawnInterval: 10050,
     playerSpeed: .25,
     playerSprintSpeed: .5
@@ -273,18 +273,18 @@ io.on('connection', (socket) => {
 
     /* Movement */
 
-    //Creates usable data { x, y }
+    //Creates usable data to check collision { x, y }
     var strafePoints = {
-      top: [player.x, pMY[0] - speed],
-      right: [pMX[1] + speed, player.y],
-      bottom: [player.x, pMY[1] + speed],
-      left: [pMX[0] - speed, player.y]
+      top: [pMX, pMY[0] - speed],
+      right: [pMX[1] + speed, pMY],
+      bottom: [pMX, pMY[1] + speed],
+      left: [pMX[0] - speed, pMY]
     };
     var diagPoints = {
-      top: [player.x, pMY[0] - diagonalSpeed],
-      right: [pMX[1] + diagonalSpeed, player.y],
-      bottom: [player.x, pMY[1] + diagonalSpeed],
-      left: [pMX[0] - diagonalSpeed, player.y]
+      top: [pMX, pMY[0] - diagonalSpeed],
+      right: [pMX[1] + diagonalSpeed,pMY],
+      bottom: [pMX, pMY[1] + diagonalSpeed],
+      left: [pMX[0] - diagonalSpeed, pMY]
     };
 
     //Cancels opposite movement
@@ -350,8 +350,8 @@ io.on('connection', (socket) => {
       player.x = 960;
     }else if (player.y > 900){
       player.y = 900;
-    }else if (player.x < 0){
-      player.x = 0;
+    }else if (player.x < .1){
+      player.x = .1;
     }else if (player.y < .1){
       player.y = .1;
     }
@@ -392,8 +392,8 @@ setInterval(() => {
       zombie.x = 960;
     }else if (zombie.y > 900){
       zombie.y = 900;
-    }else if (zombie.x < 0){
-      zombie.x = 0;
+    }else if (zombie.x < .1){
+      zombie.x = .1;
     }else if (zombie.y < .1){
       zombie.y = .1;
     }
@@ -423,50 +423,50 @@ setInterval(() => {
   /* Zombie collison detection */
 
   //Makes sure there are more than 3 zombies to prevent bugs
-  if (Object.keys(entities.zombies).length > 2){
-
-    //Loops through zombies
-    for (let zomb in entities.zombies){
-      var zombie = entities.zombies[zomb];
-
-      //Pushes zombie's position and id
-      zombieArr.push({
-        x: zombie.x,
-        y: zombie.y,
-        id: zomb
-      });
-    }
-
-    //Loops through all zombies
-    for (let zZcollision = 0; zZcollision < zombieArr.length - 1; zZcollision++){
-
-      //Picks out two consecutive zombies
-      zombie1 = zombieArr[zZcollision];
-      zombie2 = zombieArr[zZcollision + 1];
-
-      //Makes sure all variables are present
-      if ((Object.keys(entities.zombies).indexOf(zombie1.id) !== -1) && (Object.keys(entities.zombies).indexOf(zombie2.id) !== -1) && (zombie1.x && zombie1.y && zombie2.x && zombie2.y)){
-
-        //Checks distance between zombies
-        if (distance(zombie1.x, zombie2.x, zombie1.y, zombie2.y) < 20){
-
-          //Pushes horizontally
-          if (zombie1.x > zombie2.x){
-            entities.zombies[zombie1.id].x = zombie2.x + 11;
-          }else{
-            entities.zombies[zombie1.id].x = zombie2.x - 11;
-          }
-
-          //Pushes vertically
-          if (zombie1.y > zombie2.y){
-            entities.zombies[zombie1.id].y = zombie2.y + 11;
-          }else{
-            entities.zombies[zombie1.id].y = zombie2.y - 11;
-          }
-        }
-      }
-    }
-  }
+  // if (Object.keys(entities.zombies).length > 2){
+  //
+  //   //Loops through zombies
+  //   for (let zomb in entities.zombies){
+  //     var zombie = entities.zombies[zomb];
+  //
+  //     //Pushes zombie's position and id
+  //     zombieArr.push({
+  //       x: zombie.x,
+  //       y: zombie.y,
+  //       id: zomb
+  //     });
+  //   }
+  //
+  //   //Loops through all zombies
+  //   for (let zZcollision = 0; zZcollision < zombieArr.length - 1; zZcollision++){
+  //
+  //     //Picks out two consecutive zombies
+  //     zombie1 = zombieArr[zZcollision];
+  //     zombie2 = zombieArr[zZcollision + 1];
+  //
+  //     //Makes sure all variables are present
+  //     if ((Object.keys(entities.zombies).indexOf(zombie1.id) !== -1) && (Object.keys(entities.zombies).indexOf(zombie2.id) !== -1) && (zombie1.x && zombie1.y && zombie2.x && zombie2.y)){
+  //
+  //       //Checks distance between zombies
+  //       if (distance(zombie1.x, zombie2.x, zombie1.y, zombie2.y) < 20){
+  //
+  //         //Pushes horizontally
+  //         if (zombie1.x > zombie2.x){
+  //           entities.zombies[zombie1.id].x = zombie2.x + 11;
+  //         }else{
+  //           entities.zombies[zombie1.id].x = zombie2.x - 11;
+  //         }
+  //
+  //         //Pushes vertically
+  //         if (zombie1.y > zombie2.y){
+  //           entities.zombies[zombie1.id].y = zombie2.y + 11;
+  //         }else{
+  //           entities.zombies[zombie1.id].y = zombie2.y - 11;
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
 
   /* End zombie collison detection */
 
@@ -727,19 +727,47 @@ setInterval(() => {
 
       /* Add or subtract values */
 
-      //Horizontal values
-      if (zombie.x > player.x){
-        entities.zombies[zombie.id].x -= sides.a;
-      }else if (zombie.x < player.x){
-        entities.zombies[zombie.id].x += sides.a;
+      //Gets endpoints of zombie { minimum, maximum }
+      zPMX = plusOrMinus(zombie.x, 10);
+      zPMY = plusOrMinus(zombie.y, 10);
+
+      //Creates data for collison
+      var zombiePoints = {
+        top: [],
+      };
+
+      //Moves
+      if (zombie.x > player.x && zombie.y > player.y){
+
+      }else if (zombie.x > player.x && zombie.y < player.y){
+
+      }else if (zombie.x < player.x && zombie.y > player.y){
+
+      }else if (zombie.x < player.x && zombie.y < player.y){
+
+      }else if (zombie.x === player.x && zombie.y < player.y){
+
+      }else if (zombie.x === player.x && zombie.y > player.y){
+
+      }else if (zombie.x > player.x && zombie.y === player.y){
+
+      }else if (zombie.x < player.x && zombie.y === player.y){
+
       }
 
-      //Vertical values
-      if (zombie.y > player.y){
-        entities.zombies[zombie.id].y -= sides.b;
-      }else if (zombie.y < player.y){
-        entities.zombies[zombie.id].y += sides.b;
-      }
+      // //Horizontal values
+      // if (zombie.x > player.x && !checkCollideAllWalls(zombiePoints, 'left') && !zombieCollide(nextPoints, 'left')){
+      //   entities.zombies[zombie.id].x -= sides.a;
+      // }else if (zombie.x < player.x && !checkCollideAllWalls(zombiePoints, 'right') && !zombieCollide(nextPoints, 'right')){
+      //   entities.zombies[zombie.id].x += sides.a;
+      // }
+      //
+      // //Vertical values
+      // if (zombie.y > player.y && !checkCollideAllWalls(zombiePoints, 'top') && !zombieCollide(nextPoints, 'top')){
+      //   entities.zombies[zombie.id].y -= sides.b;
+      // }else if (zombie.y < player.y && !checkCollideAllWalls(zombiePoints, 'bottom') && !zombieCollide(nextPoints, 'bottom')){
+      //   entities.zombies[zombie.id].y += sides.b;
+      // }
 
       entities.zombies[zombie.id].calculations = sides;
 
@@ -747,13 +775,36 @@ setInterval(() => {
 
     }else if (!player){
       entities.zombies[zombie.id].calculations = {
-        a: 'NO PLAYER',
-        b: 'NO PLAYER',
+        a: 'NO PLAYER DETECTED',
+        b: 'NO PLAYER DETECTED',
         c: data.rules.zombieSpeed
       };
     }
   }
 }, framerate);
+
+//Checks if point colides with a zombie
+function zombieCollide(zombiePoints, which){
+
+  //Checks if there is more than one zombie
+  if (Object.keys(entities.zombies).length > 0){
+
+    //Loops through all zombies
+    for (let z in entities.zombies){
+      var zombie = entities.zombies[z];
+
+      //Checks collision
+      if (distance(zombie.x, zombiePoints[which][0], zombie.y, zombiePoints[which][1]) <= 20){
+        console.log('zombie');
+        return true;
+      }else{
+        return false;
+      }
+    }
+  }else{
+    return false;
+  }
+}
 
 //Finds closest player to a zombie
 function findClosestPlayer(zombie){
@@ -801,7 +852,10 @@ function distance(a1, a2, b1, b2){
 }
 
 //Checks tiles in front for walls
-function checkCollideAllWalls(playerPoints, direction){
+function checkCollideAllWalls(pP, direction){
+
+  //Copys the object
+  let playerPoints = JSON.parse(JSON.stringify(pP));
 
   //Variable to return
   var isWall = false;
@@ -809,34 +863,45 @@ function checkCollideAllWalls(playerPoints, direction){
   //Loops through all walls
   for (let pWCounter in walls){
 
+    var dualSides;
+    var dualIndex;
+
     //Local wall { topLeftX, topLeftY, bottomRightX, bottomRightY }
     var wall = walls[pWCounter];
 
     //Makes sure all variables are present
     if (wall[0] && wall[1] && wall[2] && wall[3] && playerPoints && !isWall){
 
-      //Checks
-      if (wallIsCollide(playerPoints, wall, direction)){
-        isWall = true;
+      //Finds the object
+      for (let counter in playerPoints[direction]){
+        if (typeof playerPoints[direction][counter] === 'object'){
+          dualSides = playerPoints[direction][counter];
+          dualIndex = counter;
+        }
+      }
+
+      //Checks twice
+      for (let i = 0; i <= 1; i++){
+        playerPoints[direction][dualIndex] = dualSides[i];
+        if (wallIsCollide(playerPoints, wall, direction) && !isWall){
+          isWall = true;
+        }
       }
     }
   }
   return isWall;
 }
 
-//Wall collison function
-function wallIsCollide(playerPoints, wall, which){
-  if ((playerPoints[which][0] > wall[0] && playerPoints[which][0] < wall[2]) && (playerPoints[which][1] > wall[1] && playerPoints[which][1] < wall[3])){
+//Checks if an entity collides with a wall
+function wallIsCollide(entityPoints, wall, which){
+
+  //Checks collison
+  if ((entityPoints[which][0] > wall[0] && entityPoints[which][0] < wall[2]) && (entityPoints[which][1] > wall[1] && entityPoints[which][1] < wall[3])){
     return true;
   }else{
     return false;
   }
 }
-
-//Clears zombies after five minutes
-setInterval(() => {
-  entities.zombies = {};
-}, 300000);
 
 //Spawns items
 setInterval(() => {
