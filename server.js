@@ -732,9 +732,9 @@ setInterval(() => {
       zPMY = plusOrMinus(zombie.y, 10);
 
       //Creates data for collison
-      var zombiePoints = {
-        top: [],
-      };
+      // var zombiePoints = {
+      //   top: [],
+      // };
 
       //Moves
       if (zombie.x > player.x && zombie.y > player.y){
@@ -785,6 +785,7 @@ setInterval(() => {
 
 //Checks if point colides with a zombie
 function zombieCollide(zombiePoints, which){
+  return false;
 
   //Checks if there is more than one zombie
   if (Object.keys(entities.zombies).length > 0){
@@ -795,7 +796,6 @@ function zombieCollide(zombiePoints, which){
 
       //Checks collision
       if (distance(zombie.x, zombiePoints[which][0], zombie.y, zombiePoints[which][1]) <= 20){
-        console.log('zombie');
         return true;
       }else{
         return false;
