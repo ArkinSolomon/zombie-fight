@@ -5,13 +5,10 @@
 
 #### Changes
 
-- Worked on map
-- Removed cookies
-- Added network data
-- Added reconnection
-- Fixed bug where username displays as undefined
-- Added on zombie-wall collision
-- Limited username characters to twenty
+- Added zombie-wall collision
+- Went back to old zombie-zombie collision
+- Capital letters no longer matter in console
+- Added function to check for a straight line 
 
 #### Future plans
 

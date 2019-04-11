@@ -385,6 +385,11 @@ function handle(e){
 
 /* End modified code from https://www.sitepoint.com/create-one-time-events-javascript */
 
+//Scrolls the screen to the game
+function scroll(){
+  window.scrollBy(0, 50);
+}
+
 //Draws disconnected screen
 function drawDisconnect(){
 
@@ -412,7 +417,7 @@ function render(ctx){
   //Loops through all tiles
   for (let m in map){
     var tile = map[m];
-
+    
     //Fills it in
     ctx.fillStyle = tile.color;
     ctx.fillRect(tile.x, tile.y, 30, 30);

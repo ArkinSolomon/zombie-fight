@@ -29,7 +29,13 @@ module.exports.start = function(){
   //Starts the console
   rl.setPrompt('> ');
   rl.prompt();
-  rl.on('line', (input) => {
+  rl.on('line', (i) => {
+
+    //Changes command to lowercase
+    let splitArr = i.split(' ');
+    var input = splitArr[0].toLowerCase();
+    splitArr.splice(0, 1);
+    input += ' ' + splitArr.join(' ');
 
     /* Checks commands */
 
@@ -217,7 +223,9 @@ stop                       exit code 0
             var currObject = JSON.stringify(data);
             for (let p in parameters){
               let parameter = parameters[p];
-              currObject = JSON.stringify(JSON.parse(currObject)[parameter]);
+              if (parameters[p]){
+                currObject = JSON.stringify(JSON.parse(currObject)[parameter]);
+              }
             }
             logAll(JSON.parse(currObject));
           }else{

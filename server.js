@@ -15,9 +15,7 @@ const startTime = new Date().getTime();
 process.cwd(__dirname);
 
 //Doesn't stop program on error
-process.on('uncaughtException', (err) => {
-  console.log(err.stack);
-});
+process.on('uncaughtException', console.log);
 
 //Port for server
 const port = 5000;
@@ -280,6 +278,7 @@ io.on('connection', (socket) => {
       bottom: [pMX, pMY[1] + speed],
       left: [pMX[0] - speed, pMY]
     };
+
     var diagPoints = {
       top: [pMX, pMY[0] - diagonalSpeed],
       right: [pMX[1] + diagonalSpeed,pMY],
@@ -423,50 +422,50 @@ setInterval(() => {
   /* Zombie collison detection */
 
   //Makes sure there are more than 3 zombies to prevent bugs
-  // if (Object.keys(entities.zombies).length > 2){
-  //
-  //   //Loops through zombies
-  //   for (let zomb in entities.zombies){
-  //     var zombie = entities.zombies[zomb];
-  //
-  //     //Pushes zombie's position and id
-  //     zombieArr.push({
-  //       x: zombie.x,
-  //       y: zombie.y,
-  //       id: zomb
-  //     });
-  //   }
-  //
-  //   //Loops through all zombies
-  //   for (let zZcollision = 0; zZcollision < zombieArr.length - 1; zZcollision++){
-  //
-  //     //Picks out two consecutive zombies
-  //     zombie1 = zombieArr[zZcollision];
-  //     zombie2 = zombieArr[zZcollision + 1];
-  //
-  //     //Makes sure all variables are present
-  //     if ((Object.keys(entities.zombies).indexOf(zombie1.id) !== -1) && (Object.keys(entities.zombies).indexOf(zombie2.id) !== -1) && (zombie1.x && zombie1.y && zombie2.x && zombie2.y)){
-  //
-  //       //Checks distance between zombies
-  //       if (distance(zombie1.x, zombie2.x, zombie1.y, zombie2.y) < 20){
-  //
-  //         //Pushes horizontally
-  //         if (zombie1.x > zombie2.x){
-  //           entities.zombies[zombie1.id].x = zombie2.x + 11;
-  //         }else{
-  //           entities.zombies[zombie1.id].x = zombie2.x - 11;
-  //         }
-  //
-  //         //Pushes vertically
-  //         if (zombie1.y > zombie2.y){
-  //           entities.zombies[zombie1.id].y = zombie2.y + 11;
-  //         }else{
-  //           entities.zombies[zombie1.id].y = zombie2.y - 11;
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
+  if (Object.keys(entities.zombies).length > 2){
+
+    //Loops through zombies
+    for (let zomb in entities.zombies){
+      var zombie = entities.zombies[zomb];
+
+      //Pushes zombie's position and id
+      zombieArr.push({
+        x: zombie.x,
+        y: zombie.y,
+        id: zomb
+      });
+    }
+
+    //Loops through all zombies
+    for (let zZcollision = 0; zZcollision < zombieArr.length - 1; zZcollision++){
+
+      //Picks out two consecutive zombies
+      zombie1 = zombieArr[zZcollision];
+      zombie2 = zombieArr[zZcollision + 1];
+
+      //Makes sure all variables are present
+      if ((Object.keys(entities.zombies).indexOf(zombie1.id) !== -1) && (Object.keys(entities.zombies).indexOf(zombie2.id) !== -1) && (zombie1.x && zombie1.y && zombie2.x && zombie2.y)){
+
+        //Checks distance between zombies
+        if (distance(zombie1.x, zombie2.x, zombie1.y, zombie2.y) < 20){
+
+          //Pushes horizontally
+          if (zombie1.x > zombie2.x){
+            entities.zombies[zombie1.id].x = zombie2.x + 11;
+          }else{
+            entities.zombies[zombie1.id].x = zombie2.x - 11;
+          }
+
+          //Pushes vertically
+          if (zombie1.y > zombie2.y){
+            entities.zombies[zombie1.id].y = zombie2.y + 11;
+          }else{
+            entities.zombies[zombie1.id].y = zombie2.y - 11;
+          }
+        }
+      }
+    }
+  }
 
   /* End zombie collison detection */
 
@@ -623,6 +622,13 @@ setInterval(() => {
     }
   }
 
+  //Checks if a zombie is dead
+  for (let counter in entities.zombies){
+    if (entities.zombies[counter].dead){
+      delete entities.zombies[counter];
+    }
+  }
+
   //Defines date
   let date = new Date();
 
@@ -672,7 +678,7 @@ function spawnZombie(){
     //Checks if zombies should be spawned
     if (data.rules.spawnZombies){
 
-      data.rules.zombieSpawnInterval -= 50;
+      data.rules.zombieSpawnInterval -= 10;
 
       //Makes zombie id
       let id = `enemy${new Date().getTime()}`;
@@ -710,13 +716,13 @@ setInterval(() => {
     if (Object.keys(entities.players).length > 0 && Object.keys(entities.zombies).length > 0 && player && zombie && player.x && player.y && zombie.x && zombie.y){
 
       //Gets the angle of the slope in radians [ toRadian(sin^-1(|slope|)) ]
-      var rad = toRad(Math.atan(Math.abs(zombie.x - player.x)) / (Math.abs(zombie.y - player.y)));
+      var rad = toRad(Math.atan(Math.abs(zombie.y - player.y)) / (Math.abs(zombie.x - player.x)));
 
       //Declares sides
       var sides = {
         a: null,
         b: null,
-        c: data.rules.zombieSpeed
+        c: data.rules.zombieSpeed,
       }
 
       //Finds side a [ sin(slopeAngle) * hypotenuse ]
@@ -725,86 +731,62 @@ setInterval(() => {
       //Finds side b [ hypotenuse^2 - a^2 ]
       sides.b = Math.sqrt(square(sides.c) - square(sides.a));
 
-      /* Add or subtract values */
+      /* Zombie movement */
 
       //Gets endpoints of zombie { minimum, maximum }
-      zPMX = plusOrMinus(zombie.x, 10);
-      zPMY = plusOrMinus(zombie.y, 10);
+      var pMX = plusOrMinus(zombie.x, 10);
+      var pMY = plusOrMinus(zombie.y, 10);
 
-      //Creates data for collison
-      // var zombiePoints = {
-      //   top: [],
-      // };
+      //Creates usable data for collision detection
+      var zombiePoints = {
+        top: [pMX, pMY[0] - sides.c],
+        right: [pMX[1] + sides.c, pMY],
+        bottom: [pMX, pMY[1] + sides.c],
+        left: [pMX[0] - sides.c, pMY]
+      };
 
-      //Moves
-      if (zombie.x > player.x && zombie.y > player.y){
-
-      }else if (zombie.x > player.x && zombie.y < player.y){
-
-      }else if (zombie.x < player.x && zombie.y > player.y){
-
-      }else if (zombie.x < player.x && zombie.y < player.y){
-
-      }else if (zombie.x === player.x && zombie.y < player.y){
-
-      }else if (zombie.x === player.x && zombie.y > player.y){
-
-      }else if (zombie.x > player.x && zombie.y === player.y){
-
-      }else if (zombie.x < player.x && zombie.y === player.y){
-
-      }
+      //Updates object
+      entities.zombies[zombie.id].calculations = sides;
+      entities.zombies[zombie.id].calculations.rad = rad;
 
       //Horizontal values
-      if (zombie.x > player.x && !checkCollideAllWalls(zombiePoints, 'left')){
+      if (zombie.x > player.x && !checkCollideAllWalls(zombiePoints, 'left') && player.x !== zombie.x){
         entities.zombies[zombie.id].x -= sides.a;
-      }else if (zombie.x < player.x && !checkCollideAllWalls(zombiePoints, 'right')){
+      }else if (zombie.x < player.x && !checkCollideAllWalls(zombiePoints, 'right') && player.x !== zombie.x){
         entities.zombies[zombie.id].x += sides.a;
+      }else{
+        if (zombie.x > player.x){
+          entities.zombies[zombie.id].x -= sides.c;
+        }else{
+          entities.zombies[zombie.id].x += sides.c;
+        }
       }
 
       //Vertical values
-      if (zombie.y > player.y && !checkCollideAllWalls(zombiePoints, 'top')){
+      if (zombie.y > player.y && !checkCollideAllWalls(zombiePoints, 'top') && player.y !== zombie.y){
         entities.zombies[zombie.id].y -= sides.b;
-      }else if (zombie.y < player.y && !checkCollideAllWalls(zombiePoints, 'bottom')){
+      }else if (zombie.y < player.y && !checkCollideAllWalls(zombiePoints, 'bottom') && player.y !== zombie.y){
         entities.zombies[zombie.id].y += sides.b;
+      }else{
+        if (zombie.y > player.y){
+          entities.zombies[zombie.id].y -= sides.c;
+        }else{
+          entities.zombies[zombie.id].y += sides.c;
+        }
       }
 
-      entities.zombies[zombie.id].calculations = sides;
-
-      /* End add or subtract values */
+      /* End zombie movement */
 
     }else if (!player){
       entities.zombies[zombie.id].calculations = {
         a: 'NO PLAYER DETECTED',
         b: 'NO PLAYER DETECTED',
-        c: data.rules.zombieSpeed
+        c: data.rules.zombieSpeed,
+        rad: 'NO PLAYER DETECTED'
       };
     }
   }
 }, framerate);
-
-//Checks if point colides with a zombie
-function zombieCollide(zombiePoints, which){
-  return false;
-
-  //Checks if there is more than one zombie
-  if (Object.keys(entities.zombies).length > 0){
-
-    //Loops through all zombies
-    for (let z in entities.zombies){
-      var zombie = entities.zombies[z];
-
-      //Checks collision
-      if (distance(zombie.x, zombiePoints[which][0], zombie.y, zombiePoints[which][1]) <= 20){
-        return true;
-      }else{
-        return false;
-      }
-    }
-  }else{
-    return false;
-  }
-}
 
 //Finds closest player to a zombie
 function findClosestPlayer(zombie){
@@ -838,6 +820,94 @@ function findClosestPlayer(zombie){
     data: entities.players[idArr[distArr.indexOf(min)]],
     distance: min
   };
+}
+
+//Finds if there is a straight line between two points
+function isPath(x1, x2, y1, y2, bullet){
+
+  //Finds the angle in radians of the two points [ toRadian(sin^-1(|slope|)) ]
+  var rad = toRad(Math.atan(Math.abs(y2 - y1)) / (Math.abs(x2 - x1)));
+
+  //If the loop should continue
+  var continueToCheck = true;
+
+  var prevPoint = [x1, y1];
+  var toPoints = [x2, y2];
+
+  //Main loop
+  while (continueToCheck){
+
+    //Point which is being checked
+    var currPoint = getNewPointsOnSlope(rad, prevPoint, toPoints, bullet);
+    prevPoint = currPoint;
+
+    //Loops through all walls
+    for (let w in walls){
+      let wall = walls[w];
+
+      //Checks collision
+      if (wallIsCollide({cPoint: currPoint}, wall, 'cPoint')){
+        continueToCheck = false;
+        break;
+      }
+    }
+
+    //Loops through all zombies
+    for (let z in entities.zombies){
+      var zombie = entities.zombies[z];
+
+      //Checks collision
+      if (distance(zombie.x, currPoint[0], zombie.y, currPoint[1]) <= 10){
+        continueToCheck = false;
+        break;
+      }
+    }
+
+    //Loops through all players
+    for (let z in entities.players){
+      var zombie = entities.players[z];
+
+      //Checks collision
+      if (distance(player.x, currPoint[0], player.y, currPoint[1]) <= 10){
+        continueToCheck = false;
+        break;
+      }
+    }
+  }
+  return (continueToCheck) ? false : prevPoint;
+}
+
+//Adds value to point in a slope
+function getNewPointsOnSlope(rad, prevPoint, toPoints, bullet){
+
+  //Variable to return
+  var varToReturn = [];
+
+  //Finds change in x [ sin(slopeAngle) * distance ]
+  var deltaX = (x1 !== x2) ? Math.abs(Math.sin(rad) * 9) : 0;
+
+  //Finds change in y [ distance^2 - deltaX^2 ]
+  var deltaY = (y1 !== y2) ? 81 - square(deltaX) : 0;
+
+  //Horizontal
+  if (prevPoint[0] + deltaX > toPoints[0]){
+    varToReturn[0] = prevPoint[0] - deltaX;
+  }else if (prevPoint[0] - deltaX < toPoints[0]){
+    varToReturn[0] = prevPoint[0] + deltaX;
+  }else{
+    varToReturn[0] = deltaX;
+  }
+
+  //Vertical
+  if (prevPoint[1] + deltaY > toPoints[1]){
+    varToReturn[1] = prevPoint[1] - deltaY;
+  }else if (prevPoint[1] - deltaX < toPoints[1]){
+    varToReturn[1] = deltaY[1] + deltaY;
+  }else{
+    varToReturn[1] = deltaY;
+  }
+
+  return varToReturn;
 }
 
 //Finds distance between two points
