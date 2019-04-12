@@ -1,14 +1,12 @@
 # Zombie Fight
 ### Can you fight of the zombies?
 
-<center>![Logo](/static/images/logo.png)</center>
-
 #### Changes
 
 - Added zombie-wall collision
 - Went back to old zombie-zombie collision
 - Capital letters no longer matter in console
-- Added function to check for a straight line 
+- Added function to check for a straight line
 
 #### Future plans
 
@@ -23,3 +21,4 @@
 - Fix bug where reconnection displays death screen
 - Fix bug where the same username displays across players
 - Come up with a new name
+- Write AP paper
