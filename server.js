@@ -715,8 +715,10 @@ setInterval(() => {
     //Makes sure all variables are present
     if (Object.keys(entities.players).length > 0 && Object.keys(entities.zombies).length > 0 && player && zombie && player.x && player.y && zombie.x && zombie.y){
 
-      //Gets the angle of the slope in radians [ toRadian(sin^-1(|slope|)) ]
-      var rad = toRad(Math.atan(Math.abs(zombie.y - player.y)) / (Math.abs(zombie.x - player.x)));
+      console.log(isPath(zombie.x, player.x, zombie.y, player.y, true));
+
+      //Gets the angle of the slope in radians
+      var rad = Math.atan2(zombie.y, zombie.x);
 
       //Declares sides
       var sides = {
@@ -726,7 +728,7 @@ setInterval(() => {
       }
 
       //Finds side a [ sin(slopeAngle) * hypotenuse ]
-      sides.a = Math.abs(Math.sin(rad) * sides.c);
+      sides.a = sides.c * Math.sin(rad);
 
       //Finds side b [ hypotenuse^2 - a^2 ]
       sides.b = Math.sqrt(square(sides.c) - square(sides.a));
@@ -748,11 +750,12 @@ setInterval(() => {
       //Updates object
       entities.zombies[zombie.id].calculations = sides;
       entities.zombies[zombie.id].calculations.rad = rad;
+      // console.log(sides);
 
       //Horizontal values
-      if (zombie.x > player.x && !checkCollideAllWalls(zombiePoints, 'left') && player.x !== zombie.x){
+      if (zombie.x > player.x && !checkCollideAllWalls(zombiePoints, 'left') && pMX[0] > player.x && pMX[1] < player.x){
         entities.zombies[zombie.id].x -= sides.a;
-      }else if (zombie.x < player.x && !checkCollideAllWalls(zombiePoints, 'right') && player.x !== zombie.x){
+      }else if (zombie.x < player.x && !checkCollideAllWalls(zombiePoints, 'right') && pMX[0] > player.x && pMX[1] < player.x){
         entities.zombies[zombie.id].x += sides.a;
       }else{
         if (zombie.x > player.x){
@@ -763,9 +766,9 @@ setInterval(() => {
       }
 
       //Vertical values
-      if (zombie.y > player.y && !checkCollideAllWalls(zombiePoints, 'top') && player.y !== zombie.y){
+      if (zombie.y > player.y && !checkCollideAllWalls(zombiePoints, 'top') && pMY[0] > player.y && pMY[1] < player.y){
         entities.zombies[zombie.id].y -= sides.b;
-      }else if (zombie.y < player.y && !checkCollideAllWalls(zombiePoints, 'bottom') && player.y !== zombie.y){
+      }else if (zombie.y < player.y && !checkCollideAllWalls(zombiePoints, 'bottom') && pMY[0] > player.y && pMY[1] < player.x){
         entities.zombies[zombie.id].y += sides.b;
       }else{
         if (zombie.y > player.y){
@@ -835,19 +838,22 @@ function isPath(x1, x2, y1, y2, bullet){
   var toPoints = [x2, y2];
 
   //Main loop
-  while (continueToCheck){
+  while (continueToCheck && prevPoint[0] > 0 && prevPoint[0] < 960 && prevPoint[1] > 0 && prevPoint[1] < 900){
 
     //Point which is being checked
-    var currPoint = getNewPointsOnSlope(rad, prevPoint, toPoints, bullet);
+    let newBullet = (typeof bullet === 'undefined' || bullet === false) ? false : bullet;
+    var currPoint = getNewPointsOnSlope(rad, prevPoint, toPoints, newBullet, x1, x2, y1, y2);
     prevPoint = currPoint;
 
     //Loops through all walls
     for (let w in walls){
       let wall = walls[w];
+      console.log(wall)
 
       //Checks collision
       if (wallIsCollide({cPoint: currPoint}, wall, 'cPoint')){
         continueToCheck = false;
+        console.log("COLLIDE");
         break;
       }
     }
@@ -865,7 +871,7 @@ function isPath(x1, x2, y1, y2, bullet){
 
     //Loops through all players
     for (let z in entities.players){
-      var zombie = entities.players[z];
+      var player = entities.players[z];
 
       //Checks collision
       if (distance(player.x, currPoint[0], player.y, currPoint[1]) <= 10){
@@ -874,20 +880,23 @@ function isPath(x1, x2, y1, y2, bullet){
       }
     }
   }
-  return (continueToCheck) ? false : prevPoint;
+  data.entities.temp = [];
+  data.entities.temp.push(prevPoint);
+  return (typeof bullet === 'undefined' || bullet === false) ? continueToCheck : prevPoint;
 }
 
 //Adds value to point in a slope
-function getNewPointsOnSlope(rad, prevPoint, toPoints, bullet){
+function getNewPointsOnSlope(rad, prevPoint, toPoints, bullet, x1, x2, y1, y2){
 
   //Variable to return
   var varToReturn = [];
 
-  //Finds change in x [ sin(slopeAngle) * distance ]
-  var deltaX = (x1 !== x2) ? Math.abs(Math.sin(rad) * 9) : 0;
+  //Finds the measure in radians of the angle to the x
+  var degree = Math.atan2(y2, x2) * 180 / Math.PI;
 
-  //Finds change in y [ distance^2 - deltaX^2 ]
-  var deltaY = (y1 !== y2) ? 81 - square(deltaX) : 0;
+  //Finds changes in x and y
+  var deltaX = Math.abs(x2 - x1);
+  var deltaY = Math.abs(y2 - y1);
 
   //Horizontal
   if (prevPoint[0] + deltaX > toPoints[0]){
@@ -895,16 +904,16 @@ function getNewPointsOnSlope(rad, prevPoint, toPoints, bullet){
   }else if (prevPoint[0] - deltaX < toPoints[0]){
     varToReturn[0] = prevPoint[0] + deltaX;
   }else{
-    varToReturn[0] = deltaX;
+    varToReturn[0] = prevPoint[0];
   }
 
   //Vertical
   if (prevPoint[1] + deltaY > toPoints[1]){
     varToReturn[1] = prevPoint[1] - deltaY;
   }else if (prevPoint[1] - deltaX < toPoints[1]){
-    varToReturn[1] = deltaY[1] + deltaY;
+    varToReturn[1] = prevPoint[1] + deltaY;
   }else{
-    varToReturn[1] = deltaY;
+    varToReturn[1] = prevPoint[1];
   }
 
   return varToReturn;
@@ -933,7 +942,10 @@ function checkCollideAllWalls(pP, direction){
   //Loops through all walls
   for (let pWCounter in walls){
 
-    var dualSides;
+    //Array of plus or minus values
+    var dual;
+
+    //Index of array of plus or minus values
     var dualIndex;
 
     //Local wall { topLeftX, topLeftY, bottomRightX, bottomRightY }
@@ -942,24 +954,31 @@ function checkCollideAllWalls(pP, direction){
     //Makes sure all variables are present
     if (wall[0] && wall[1] && wall[2] && wall[3] && playerPoints && !isWall){
 
-      //Finds the object
-      for (let counter in playerPoints[direction]){
-        if (typeof playerPoints[direction][counter] === 'object'){
-          dualSides = playerPoints[direction][counter];
-          dualIndex = counter;
+      //Checks if there is an object
+      if (typeof playerPoints[direction][0] === 'object' || typeof playerPoints[direction][1] === 'object'){
+        dualIndex = (typeof playerPoints[direction][0] === 'object') ? 0 : 1;
+        dual = (typeof playerPoints[direction][0] === 'object') ? playerPoints[direction][0] : playerPoints[direction][1];
+        playerPoints[direction][dualIndex] === dual[0];
+        if (wallIsCollide(playerPoints, wall, direction)){
+          isWall = true;
         }
-      }
-
-      //Checks twice
-      for (let i = 0; i <= 1; i++){
-        playerPoints[direction][dualIndex] = dualSides[i];
-        if (wallIsCollide(playerPoints, wall, direction) && !isWall){
+        playerPoints[direction][dualIndex] === dual[1];
+        if (wallIsCollide(playerPoints, wall, direction)){
+          isWall = true;
+        }
+      }else{
+        if (wallIsCollide(playerPoints, wall, direction)){
           isWall = true;
         }
       }
     }
   }
   return isWall;
+}
+
+//Checks if a number is between two values
+function checkIsWithin(n, arr){
+  return (arr[0] < n && arr[1] > n);
 }
 
 //Checks if an entity collides with a wall
@@ -1010,8 +1029,8 @@ setInterval(() => {
 //Converts degrees to radians (Equation from Google Unit Converter)
 function toRad(deg) {
 
-  //Converts [ (degrees * 180) / 3.14159... ]
-  return deg * 180 / Math.PI
+  //Converts [ (degrees) 3.14159... / 180 ]
+  return deg * Math.PI / 180;
 }
 
 //Finds values greater than and less than a given value

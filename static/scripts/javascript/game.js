@@ -417,10 +417,15 @@ function render(ctx){
   //Loops through all tiles
   for (let m in map){
     var tile = map[m];
-    
+
     //Fills it in
     ctx.fillStyle = tile.color;
     ctx.fillRect(tile.x, tile.y, 30, 30);
+  }
+
+  for (let p in entities.temp){
+    console.log(entities.temp)
+    circle(entities.temp[p][0], entities.temp[p][1], 6, 'blue', 'black', ctx);
   }
 }
 
@@ -499,7 +504,7 @@ class user {
     this.ctx.font = "12px Arial";
     this.ctx.textAlign = 'center';
     this.ctx.fillStyle = '#ffffff';
-    ctx.fillText(this.username, this.x, this.y - 20);
+    ctx.fillText((this.username) ? this.username : this.player.id, this.x, this.y - 20);
   }
 }
 

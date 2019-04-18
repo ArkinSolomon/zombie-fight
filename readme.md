@@ -3,16 +3,14 @@
 
 #### Changes
 
-- Added zombie-wall collision
-- Went back to old zombie-zombie collision
-- Capital letters no longer matter in console
-- Added function to check for a straight line
+- Worked on path tracing
 
 #### Future plans
 
 - Finish the map
 - Add weapons
 - Add advanced pathfinding
+- Add player-wall collison
 - Make the game less difficult
 - Make all times UTC
 - Fix bug where zombies spawn in mass at end of game
