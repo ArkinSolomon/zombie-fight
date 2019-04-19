@@ -892,7 +892,7 @@ function getNewPointsOnSlope(rad, prevPoint, toPoints, bullet, x1, x2, y1, y2){
   var varToReturn = [];
 
   //Finds the measure in radians of the angle to the x
-  var degree = Math.atan2(y2, x2) * 180 / Math.PI;
+  var degree = degToFrom([x2, y2], [x1, y1]);
 
   //Finds changes in x and y
   var deltaX = Math.abs(x2 - x1);
@@ -956,8 +956,10 @@ function checkCollideAllWalls(pP, direction){
 
       //Checks if there is an object
       if (typeof playerPoints[direction][0] === 'object' || typeof playerPoints[direction][1] === 'object'){
+
         dualIndex = (typeof playerPoints[direction][0] === 'object') ? 0 : 1;
         dual = (typeof playerPoints[direction][0] === 'object') ? playerPoints[direction][0] : playerPoints[direction][1];
+
         playerPoints[direction][dualIndex] === dual[0];
         if (wallIsCollide(playerPoints, wall, direction)){
           isWall = true;
@@ -1025,6 +1027,33 @@ setInterval(() => {
     };
   }
 }, 15000);
+
+//Gets angle in radians assuming the point given is the origin
+function degToFrom(to, from){
+
+  var newPoints = [];
+
+  //Checks position of the point assuming the point given is the origin and finds positivity of x
+  if (to[0] > from[0]){
+    newPoints[0] = Math.abs(to[0]);
+  }else if (to[0] < from[0]){
+    newPoints[0] = -Math.abs(to[0]);
+  }else{
+    newPoints[0] = 0;
+  }
+
+  //Checks position of the point assuming the point given is the origin and finds positivity of y
+  if (to[1] > from[1]){
+    newPoints[1] = Math.abs(to[1]);
+  }else if (to[1] < from[1]){
+    newPoints[1] = -Math.abs(to[1]);
+  }else{
+    newPoints[1] = 0;
+  }
+
+  //Finds angle in degrees
+  return Math.atan2(newPoints[1], newPoints[0]) * 180 * Math.PI;
+}
 
 //Converts degrees to radians (Equation from Google Unit Converter)
 function toRad(deg) {
