@@ -6,13 +6,8 @@
 *
 */
 
-/* Basic setup */
-
 //Time of server start
 const startTime = new Date().getTime();
-
-//Changes directory
-process.cwd(__dirname);
 
 //Doesn't stop program on error
 process.on('uncaughtException', console.log);
@@ -21,27 +16,29 @@ process.on('uncaughtException', console.log);
 const port = 5000;
 
 //Framerate
-const fps = 60;
+const fps = 2;
 const framerate = 1000 / fps;
-
-/* End basic setup */
 
 //External modules
 const arkin = require('arkin');
 const fs = require('fs');
-const os = require('os');
 const publicIp = require('public-ip');
+const OS = require('os');
 
 /* Code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
 const express = require('express');
 const http = require('http');
-const path = require('path');
 const socketIO = require('socket.io');
+const path = require('path');
+
+//Changes directory
+process.chdir(path.resolve(__dirname));
 
 //Internal modules
-const {createMap} = require('./map/createMap.js');
-const gameConsole = require('./console.js');
+const {createMap} = require('./src/map/createMap.js');
+const {minify} = require('./src/backend/minifier.js');
+const gameConsole = require('./src/backend/console.js');
 
 //Server setup
 const app = express();
@@ -50,15 +47,18 @@ const io = socketIO(server);
 
 //Emiter
 const EventEmitter = require('events').EventEmitter;
-const c = new EventEmitter;
-module.exports.c = c;
+const Server = new EventEmitter;
+module.exports.Server = Server;
 
-//Starts server
+//Server setup
 app.set('port', port);
-app.use('/static', express.static(__dirname + '/static'));
+app.use('/src/site', express.static(__dirname + '/src/site'));
+
+//Pages
 app.get('/', (request, response) => {
-  response.sendFile(path.join(__dirname, '/static/index.html'));
+  response.sendFile(path.join(__dirname, '/src/site/index.html'));
 });
+
 
 /* End code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
@@ -82,22 +82,28 @@ var map;
 createMap(() => {
 
   //Parses the map
-  walls = JSON.parse(fs.readFileSync('./map/walls.zfm'));
-  map = JSON.parse(fs.readFileSync('./map/map.zfm', 'utf8'));
+  walls = JSON.parse(fs.readFileSync('./src/map/walls.zfm'));
+  map = JSON.parse(fs.readFileSync('./src/map/map.zfm', 'utf8'));
 
-  //Starts the server
-  server.listen(port, () => {
-    console.log(`Server listening on port ${port}`);
+  //Minifies javascript
+  minify()
+    .then(() => {
 
-    //Starts the console
-    gameConsole.start();
+      //Starts the server
+      server.listen(port, () => {
+        console.log(`Server listening on port ${port}`);
 
-    //Starts spawning zombies
-    spawnZombie();
-  });
+        //Starts the console
+        gameConsole.start();
+
+        //Starts spawning zombies
+        spawnZombie();
+      });
+    })
+    .catch(console.log);
 });
 
-//Main data variable
+//Main data variable *MINIFIED*
 var data = {
   entities: {},
   time: {},
@@ -105,12 +111,14 @@ var data = {
     spawnZombies: true,
     spawnItems: true,
     zombieSpeed: .8,
+    itemSpawnInterval: 15000,
     zombieSpawnInterval: 10050,
     playerSpeed: .25,
     playerSprintSpeed: .5
   },
   serverData: {
     fps: fps,
+    millisecondsBetweenUpdates: framerate,
     rootDirectory: __dirname,
     network: {
       port: port,
@@ -128,7 +136,7 @@ var entities = {
 
 /* Modified code from nodyou's answer at https://stackoverflow.com/questions/3653065/get-local-ip-address-in-node-js */
 
-const ifaces = os.networkInterfaces();
+const ifaces = OS.networkInterfaces();
 Object.keys(ifaces).forEach(function (ifname) {
   var alias = 0;
   ifaces[ifname].forEach(function (iface) {
@@ -166,9 +174,9 @@ io.on('connection', (socket) => {
   });
 
   //Renders map on console command
-  c.on('render', () => {
-    walls = JSON.parse(fs.readFileSync('./map/walls.zfm'));
-    map = JSON.parse(fs.readFileSync('./map/map.zfm', 'utf8'));
+  Server.on('render', () => {
+    walls = JSON.parse(fs.readFileSync('./src/map/walls.zfm'));
+    map = JSON.parse(fs.readFileSync('./src/map/map.zfm', 'utf8'));
 
     //Gives player game data
     socket.emit('get data', {
@@ -261,30 +269,11 @@ io.on('connection', (socket) => {
     //Initializes player x and y
     var player = players[socket.id] || {};
 
+    /* Movement */
+
     //Speed
     var speed = (keys.shift) ? data.rules.playerSprintSpeed : data.rules.playerSpeed;
     var diagonalSpeed = Math.sqrt(speed) / 2;
-
-    //Gets player plus or minus values for both x and y { minimum, maximum }
-    var pMX = plusOrMinus(player.x, 10);
-    var pMY = plusOrMinus(player.y, 10);
-
-    /* Movement */
-
-    //Creates usable data to check collision { x, y }
-    var strafePoints = {
-      top: [pMX, pMY[0] - speed],
-      right: [pMX[1] + speed, pMY],
-      bottom: [pMX, pMY[1] + speed],
-      left: [pMX[0] - speed, pMY]
-    };
-
-    var diagPoints = {
-      top: [pMX, pMY[0] - diagonalSpeed],
-      right: [pMX[1] + diagonalSpeed,pMY],
-      bottom: [pMX, pMY[1] + diagonalSpeed],
-      left: [pMX[0] - diagonalSpeed, pMY]
-    };
 
     //Cancels opposite movement
     if (keys.up && keys.down){
@@ -299,45 +288,53 @@ io.on('connection', (socket) => {
     /* Modified from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
     //Strafing
-    if (keys.up && !checkCollideAllWalls(strafePoints, 'top') && !keys.left && !keys.right && !keys.down){
-      player.y -= speed;
-    }else if (keys.left && !checkCollideAllWalls(strafePoints, 'left') && !keys.up && !keys.right && !keys.down){
-      player.x -= speed;
-    }else if (keys.down && !checkCollideAllWalls(strafePoints, 'bottom') && !keys.left && !keys.right && !keys.up){
-      player.y += speed;
-    }else if (keys.right && !checkCollideAllWalls(strafePoints, 'right') && !keys.left && !keys.up && !keys.down){
-      player.x += speed;
+    if (keys.up && !keys.left && !keys.right && !keys.down){
+      if (!checkCollideAllWalls([player.x, player.y - speed], 10)){
+        player.y -= speed;
+      }
+    }else if (keys.left && !keys.up && !keys.right && !keys.down){
+      if (!checkCollideAllWalls([player.x - speed, player.y], 10)){
+        player.x -= speed;
+      }
+    }else if (keys.down && !keys.left && !keys.right && !keys.up){
+      if (!checkCollideAllWalls([player.x, player.y + speed], 10)){
+        player.y += speed;
+      }
+    }else if (keys.right && !keys.left && !keys.up && !keys.down){
+      if (!checkCollideAllWalls([player.x + speed, player.y], 10)){
+        player.x += speed;
+      }
     }
 
     /* End modified code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
     //Diagonal movement
     if (keys.up && keys.left && !keys.down && !keys.right){
-      if (!checkCollideAllWalls(diagPoints, 'left')){
+      if (!checkCollideAllWalls([player.x - diagonalSpeed, player.y], 10)){
         player.x -= diagonalSpeed;
       }
-      if (!checkCollideAllWalls(diagPoints, 'top')){
+      if (!checkCollideAllWalls([player.x, player.y - diagonalSpeed], 10)){
         player.y -= diagonalSpeed;
       }
     }else if (keys.up && keys.right && !keys.down && !keys.left){
-      if (!checkCollideAllWalls(diagPoints, 'right')){
+      if (!checkCollideAllWalls([player.x + diagonalSpeed, player.y], 10)){
         player.x += diagonalSpeed;
       }
-      if (!checkCollideAllWalls(diagPoints, 'top')){
+      if (!checkCollideAllWalls([player.x, player.y - diagonalSpeed], 10)){
         player.y -= diagonalSpeed;
       }
     }else if (keys.down && keys.left && !keys.up && !keys.right){
-      if (!checkCollideAllWalls(diagPoints, 'left')){
+      if (!checkCollideAllWalls([player.x - diagonalSpeed, player.y], 10)){
         player.x -= diagonalSpeed;
       }
-      if (!checkCollideAllWalls(diagPoints, 'bottom')){
+      if (!checkCollideAllWalls([player.x, player.y + diagonalSpeed], 10)){
         player.y += diagonalSpeed;
       }
     }else if (keys.down && keys.right && !keys.up && !keys.left){
-      if (!checkCollideAllWalls(diagPoints, 'right')){
+      if (!checkCollideAllWalls([player.x + diagonalSpeed, player.y], 10)){
         player.x += diagonalSpeed;
       }
-      if (!checkCollideAllWalls(diagPoints, 'bottom')){
+      if (!checkCollideAllWalls([player.x, player.y + diagonalSpeed], 10)){
         player.y += diagonalSpeed;
       }
     }
@@ -715,7 +712,7 @@ setInterval(() => {
     //Makes sure all variables are present
     if (Object.keys(entities.players).length > 0 && Object.keys(entities.zombies).length > 0 && player && zombie && player.x && player.y && zombie.x && zombie.y){
 
-      console.log(isPath(zombie.x, player.x, zombie.y, player.y, true));
+      tracePath([zombie.x, zombie.y], [player.x, player.y]);
 
       //Gets the angle of the slope in radians
       var rad = Math.atan2(zombie.y, zombie.x);
@@ -750,7 +747,6 @@ setInterval(() => {
       //Updates object
       entities.zombies[zombie.id].calculations = sides;
       entities.zombies[zombie.id].calculations.rad = rad;
-      // console.log(sides);
 
       //Horizontal values
       if (zombie.x > player.x && !checkCollideAllWalls(zombiePoints, 'left') && pMX[0] > player.x && pMX[1] < player.x){
@@ -791,6 +787,34 @@ setInterval(() => {
   }
 }, framerate);
 
+//Spawns items
+setInterval(() => {
+
+  //Checks rules
+  if (data.rules.spawnItems){
+
+    //Determines what the item will be
+    var type = function(){
+
+      //Gets a random number
+      var rand = Math.floor(Math.random() * 5);
+
+      //Picks item
+      if (rand <= 3){
+        return 'bandage';
+      }else{
+        return 'healthKit';
+      }
+    }
+
+    //Creates item
+    let i = new Item(type());
+
+    //Adds item to entities
+    entities.items[i.getName()] = i.objectify();
+  }
+}, data.rules.itemSpawnInterval);
+
 //Finds closest player to a zombie
 function findClosestPlayer(zombie){
 
@@ -825,98 +849,55 @@ function findClosestPlayer(zombie){
   };
 }
 
-//Finds if there is a straight line between two points
-function isPath(x1, x2, y1, y2, bullet){
-
-  //Finds the angle in radians of the two points [ toRadian(sin^-1(|slope|)) ]
-  var rad = toRad(Math.atan(Math.abs(y2 - y1)) / (Math.abs(x2 - x1)));
-
-  //If the loop should continue
-  var continueToCheck = true;
-
-  var prevPoint = [x1, y1];
-  var toPoints = [x2, y2];
-
-  //Main loop
-  while (continueToCheck && prevPoint[0] > 0 && prevPoint[0] < 960 && prevPoint[1] > 0 && prevPoint[1] < 900){
-
-    //Point which is being checked
-    let newBullet = (typeof bullet === 'undefined' || bullet === false) ? false : bullet;
-    var currPoint = getNewPointsOnSlope(rad, prevPoint, toPoints, newBullet, x1, x2, y1, y2);
-    prevPoint = currPoint;
-
-    //Loops through all walls
-    for (let w in walls){
-      let wall = walls[w];
-      console.log(wall)
-
-      //Checks collision
-      if (wallIsCollide({cPoint: currPoint}, wall, 'cPoint')){
-        continueToCheck = false;
-        console.log("COLLIDE");
-        break;
-      }
-    }
-
-    //Loops through all zombies
-    for (let z in entities.zombies){
-      var zombie = entities.zombies[z];
-
-      //Checks collision
-      if (distance(zombie.x, currPoint[0], zombie.y, currPoint[1]) <= 10){
-        continueToCheck = false;
-        break;
-      }
-    }
-
-    //Loops through all players
-    for (let z in entities.players){
-      var player = entities.players[z];
-
-      //Checks collision
-      if (distance(player.x, currPoint[0], player.y, currPoint[1]) <= 10){
-        continueToCheck = false;
-        break;
-      }
-    }
-  }
-  data.entities.temp = [];
-  data.entities.temp.push(prevPoint);
-  return (typeof bullet === 'undefined' || bullet === false) ? continueToCheck : prevPoint;
-}
-
-//Adds value to point in a slope
-function getNewPointsOnSlope(rad, prevPoint, toPoints, bullet, x1, x2, y1, y2){
+//Checks tiles in front for walls
+function checkCollideAllWalls(points, radius){
 
   //Variable to return
-  var varToReturn = [];
+  var isWall = false;
 
-  //Finds the measure in radians of the angle to the x
-  var degree = degToFrom([x2, y2], [x1, y1]);
+  //Loops through all walls
+  for (let w in walls){
+      var wall = walls[w];
 
-  //Finds changes in x and y
-  var deltaX = Math.abs(x2 - x1);
-  var deltaY = Math.abs(y2 - y1);
+      //Checks if all variables are present
+      if (wall[0] && wall[1] && wall[2] && wall[3] && points[0] && points[1]){
 
-  //Horizontal
-  if (prevPoint[0] + deltaX > toPoints[0]){
-    varToReturn[0] = prevPoint[0] - deltaX;
-  }else if (prevPoint[0] - deltaX < toPoints[0]){
-    varToReturn[0] = prevPoint[0] + deltaX;
-  }else{
-    varToReturn[0] = prevPoint[0];
+        //Gets the four outside points of the entity
+        var ePoints = {
+          top: [points[0], points[1] - radius],
+          right: [points[0] + radius, points[1]],
+          bottom: [points[0], points[1] + radius],
+          left: [points[0] - radius, points[1]]
+        };
+
+        //Loops through all points
+        for (let e in ePoints){
+
+          //Checks collison
+          if (wallIsCollide(ePoints[e], wall)){
+            isWall = true;
+            break;
+          }
+        }
+      }
   }
+  return isWall;
+}
 
-  //Vertical
-  if (prevPoint[1] + deltaY > toPoints[1]){
-    varToReturn[1] = prevPoint[1] - deltaY;
-  }else if (prevPoint[1] - deltaX < toPoints[1]){
-    varToReturn[1] = prevPoint[1] + deltaY;
+//Checks if an entity collides with a wall
+function wallIsCollide(points, wall){
+
+  //Checks collison
+  if (checkIsWithin(points[0], [wall[0], wall[2]]) && checkIsWithin(points[1], [wall[1], wall[3]])){
+    return true;
   }else{
-    varToReturn[1] = prevPoint[1];
+    return false;
   }
+}
 
-  return varToReturn;
+//Checks if a number is between two values
+function checkIsWithin(n, arr){
+  return (arr[0] < n && arr[1] > n);
 }
 
 //Finds distance between two points
@@ -928,138 +909,6 @@ function distance(a1, a2, b1, b2){
 
   //Returns the distance [ squareRoot(a^2 + b^2) ]
   return Math.sqrt(square(a) + square(b));
-}
-
-//Checks tiles in front for walls
-function checkCollideAllWalls(pP, direction){
-
-  //Copys the object
-  let playerPoints = JSON.parse(JSON.stringify(pP));
-
-  //Variable to return
-  var isWall = false;
-
-  //Loops through all walls
-  for (let pWCounter in walls){
-
-    //Array of plus or minus values
-    var dual;
-
-    //Index of array of plus or minus values
-    var dualIndex;
-
-    //Local wall { topLeftX, topLeftY, bottomRightX, bottomRightY }
-    var wall = walls[pWCounter];
-
-    //Makes sure all variables are present
-    if (wall[0] && wall[1] && wall[2] && wall[3] && playerPoints && !isWall){
-
-      //Checks if there is an object
-      if (typeof playerPoints[direction][0] === 'object' || typeof playerPoints[direction][1] === 'object'){
-
-        dualIndex = (typeof playerPoints[direction][0] === 'object') ? 0 : 1;
-        dual = (typeof playerPoints[direction][0] === 'object') ? playerPoints[direction][0] : playerPoints[direction][1];
-
-        playerPoints[direction][dualIndex] === dual[0];
-        if (wallIsCollide(playerPoints, wall, direction)){
-          isWall = true;
-        }
-        playerPoints[direction][dualIndex] === dual[1];
-        if (wallIsCollide(playerPoints, wall, direction)){
-          isWall = true;
-        }
-      }else{
-        if (wallIsCollide(playerPoints, wall, direction)){
-          isWall = true;
-        }
-      }
-    }
-  }
-  return isWall;
-}
-
-//Checks if a number is between two values
-function checkIsWithin(n, arr){
-  return (arr[0] < n && arr[1] > n);
-}
-
-//Checks if an entity collides with a wall
-function wallIsCollide(entityPoints, wall, which){
-
-  //Checks collison
-  if ((entityPoints[which][0] > wall[0] && entityPoints[which][0] < wall[2]) && (entityPoints[which][1] > wall[1] && entityPoints[which][1] < wall[3])){
-    return true;
-  }else{
-    return false;
-  }
-}
-
-//Spawns items
-setInterval(() => {
-
-  //Checks rules
-  if (data.rules.spawnItems){
-
-    //Determines what the item will be
-    var type = function(){
-
-      //Gets a random number
-      var rand = Math.floor(Math.random() * 5);
-
-      //Picks item
-      if (rand <= 3){
-        return 'bandage';
-      }else{
-        return 'healthKit';
-      }
-    }
-
-    //Creates item
-    let i = new item(type());
-
-    //Adds item to entities
-    entities.items[i.name()] = {
-      x: i.x,
-      y: i.y,
-      item: i.item,
-      id: i.id,
-      timeRemaining: 60000
-    };
-  }
-}, 15000);
-
-//Gets angle in radians assuming the point given is the origin
-function degToFrom(to, from){
-
-  var newPoints = [];
-
-  //Checks position of the point assuming the point given is the origin and finds positivity of x
-  if (to[0] > from[0]){
-    newPoints[0] = Math.abs(to[0]);
-  }else if (to[0] < from[0]){
-    newPoints[0] = -Math.abs(to[0]);
-  }else{
-    newPoints[0] = 0;
-  }
-
-  //Checks position of the point assuming the point given is the origin and finds positivity of y
-  if (to[1] > from[1]){
-    newPoints[1] = Math.abs(to[1]);
-  }else if (to[1] < from[1]){
-    newPoints[1] = -Math.abs(to[1]);
-  }else{
-    newPoints[1] = 0;
-  }
-
-  //Finds angle in degrees
-  return Math.atan2(newPoints[1], newPoints[0]) * 180 * Math.PI;
-}
-
-//Converts degrees to radians (Equation from Google Unit Converter)
-function toRad(deg) {
-
-  //Converts [ (degrees) 3.14159... / 180 ]
-  return deg * Math.PI / 180;
 }
 
 //Finds values greater than and less than a given value
@@ -1077,31 +926,27 @@ function square(number){
 }
 
 //Item class
-class item {
+class Item {
   constructor(item){
     this.id = new Date().getTime().toString();
     this.item = item;
+    this.name = `item${this.id}`;
     this.x = Math.floor(Math.random() * 951);
     this.y = Math.floor(Math.random() * 901);
   }
 
-  item(){
-    return this.item;
+  getName(){
+    return this.name;
   }
 
-  id(){
-    return this.id;
-  }
-
-  x(){
-    return this.x;
-  }
-
-  y(){
-    return this.y;
-  }
-
-  name(){
-    return 'item' + this.id;
+  objectify(){
+    return {
+      x: this.x,
+      y: this.y,
+      item: this.item,
+      name: this.name,
+      id: this.id,
+      timeRemaining: 60000
+    };
   }
 }

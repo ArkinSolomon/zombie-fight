@@ -192,12 +192,12 @@ socket.on('update', function(dataFromServer){
 
   /* Item counters */
 
-  let counterBandage = new bandage({
+  let counterBandage = new Bandage({
     x: 35,
     y: 860,
   }, circle, ctx, 3);
 
-  let counterHealthKit = new healthKit({
+  let counterHealthKit = new Healthkit({
     x: 100,
     y: 860,
   }, ctx, 3);
@@ -213,14 +213,14 @@ socket.on('update', function(dataFromServer){
   //Loops through players
   for (let id in entities.players){
     if (entities.players[id]){
-      var player = new user(entities.players[id], circle, ctx);
+      var player = new User(entities.players[id], circle, ctx);
       player.draw();
     }
   }
 
   //Loops through zombies
   for (let zomb in entities.zombies){
-    var zombie = new enemy(entities.zombies[zomb], circle, ctx);
+    var zombie = new Enemy(entities.zombies[zomb], circle, ctx);
     zombie.draw();
   }
 
@@ -309,10 +309,10 @@ function spawnItem(item, ctx){
 
   //Checks item and draws the item based on its type
   if (item.item === 'bandage'){
-    let bd = new bandage(item, circle, ctx);
+    let bd = new Bandage(item, circle, ctx);
     bd.draw();
   }else if (item.item === 'healthKit'){
-    let hk = new healthKit(item, ctx);
+    let hk = new Healthkit(item, ctx);
     hk.draw()
   }
 }
@@ -422,11 +422,6 @@ function render(ctx){
     ctx.fillStyle = tile.color;
     ctx.fillRect(tile.x, tile.y, 30, 30);
   }
-
-  for (let p in entities.temp){
-    console.log(entities.temp)
-    circle(entities.temp[p][0], entities.temp[p][1], 6, 'blue', 'black', ctx);
-  }
 }
 
 //Sends player username to server
@@ -454,7 +449,7 @@ function sendColor(hex){
 }
 
 //Health kit class
-class healthKit {
+class Healthkit {
   constructor(item, ctx, ratio){
     this.ctx = ctx;
     this.x = item.x;
@@ -472,7 +467,7 @@ class healthKit {
 }
 
 //Bandage class
-class bandage {
+class Bandage {
   constructor(item, circle, ctx, ratio){
     this.ctx = ctx;
     this.circle = circle;
@@ -488,7 +483,7 @@ class bandage {
 }
 
 //Player class
-class user {
+class User {
   constructor(player, circle, ctx){
     this.x = player.x;
     this.y = player.y;
@@ -509,7 +504,7 @@ class user {
 }
 
 //Zombie class
-class enemy {
+class Enemy {
   constructor(zombie, circle, ctx){
     this.x = zombie.x;
     this.y = zombie.y;

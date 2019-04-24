@@ -3,12 +3,13 @@
   <head>
     <meta charset="utf-8">
     <title>Zombie Fight</title>
-    <link rel="stylesheet" href="static/stylesheets/site.css" type="text/css">
-    <link rel="shortcut icon" href="static/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="src/site/stylesheets/site.css" type="text/css">
+    <link rel="shortcut icon" href="src/site/images/favicon.ico" type="image/x-icon">
     <script src="/socket.io/socket.io.js"></script>
+    <script src="/src/site/scripts/javascript/game.min.js"></script>
   </head>
-  <body onload="scroll()">
-    <img src="/static/images/logo.png" id="logo"></img>
+  <body>
+    <img src="/src/site/images/logo.png" id="logo"></img>
     <img src="http://www.clker.com/cliparts/a/5/3/4/13663729711952954145disconnect.svg.med.png" id="disconnectImg" style="display: none;"></img>
     <div id="body-container">
       <div id="left-container">
@@ -29,5 +30,4 @@
       </div>
     </div>
   </body>
-  <script src="/static/scripts/javascript/game.js"></script>
 </html>

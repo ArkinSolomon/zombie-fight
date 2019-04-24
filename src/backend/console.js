@@ -1,6 +1,6 @@
 /* console.js
 *
-* This file executes all commands issued by the console
+* The server-side file which executes all commands issued by the console
 *
 */
 
@@ -10,8 +10,8 @@ const arkin = require('arkin');
 const si = require('systeminformation');
 
 //Internal modules
-const {createMap} = require('./map/createMap.js');
-const server = require('./server.js');
+const {createMap} = require('../../src/map/createMap.js');
+const Server = require('./server.js').Server;
 
 //Where the data is stored
 var data = {};
@@ -29,13 +29,7 @@ module.exports.start = function(){
   //Starts the console
   rl.setPrompt('> ');
   rl.prompt();
-  rl.on('line', (i) => {
-
-    //Changes command to lowercase
-    let splitArr = i.split(' ');
-    var input = splitArr[0].toLowerCase();
-    splitArr.splice(0, 1);
-    input += ' ' + splitArr.join(' ');
+  rl.on('line', (input) => {
 
     /* Checks commands */
 
@@ -261,5 +255,5 @@ function logAll(data){
 
 //Sends map render
 function sendMap(){
-  server.c.emit('render');
+  Server.emit('render');
 }

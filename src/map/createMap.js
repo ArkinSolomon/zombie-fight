@@ -20,7 +20,7 @@ module.exports.createMap = function(callback){
   const start = new Date().getTime();
 
   //Gets map string
-  const mapString = fs.readFileSync('./map/map.zfms', 'utf8');
+  const mapString = fs.readFileSync('./src/map/map.zfms', 'utf8');
 
   //Makes the string into an array
   const mapArray = mapString.split('%');
@@ -29,14 +29,14 @@ module.exports.createMap = function(callback){
   var allWalls = [];
 
   //Removes map
-  fs.unlink('./map/map.zfm', (err) => {
+  fs.unlink('./src/map/map.zfm', (err) => {
 
     //Catches error not found
     if (err){
       console.log(`MAP FILE NOT FOUND. SKIPING DELETION`);
     }
 
-    fs.unlink('./map/walls.zfm', (err) =>{
+    fs.unlink('./src/map/walls.zfm', (err) =>{
 
       //Catches error not found
       if (err){
@@ -117,8 +117,8 @@ module.exports.createMap = function(callback){
       }
 
       //Writes map and walls to json files
-      fs.writeFileSync('./map/map.zfm', JSON.stringify(main.map), 'utf8');
-      fs.writeFileSync('./map/walls.zfm', JSON.stringify(main.walls), 'utf8');
+      fs.writeFileSync('./src/map/map.zfm', JSON.stringify(main.map), 'utf8');
+      fs.writeFileSync('./src/map/walls.zfm', JSON.stringify(main.walls), 'utf8');
 
       //Logs the time it took
       console.log(`Map parsed: ${main.map.length + main.walls.length} values written in ${(new Date().getTime() - start) / 1000} seconds`);
