@@ -10,7 +10,7 @@ const arkin = require('arkin');
 const si = require('systeminformation');
 
 //Internal modules
-const {createMap} = require('../../src/map/createMap.js');
+const {createMap} = require('./src/map/createMap.js');
 const Server = require('./server.js').Server;
 
 //Where the data is stored
