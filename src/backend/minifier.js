@@ -1,6 +1,6 @@
 /* minifier.js
 *
-* The server-side file which minifies game.js, using the uglify-es API,
+* The server-side file which minifies the file game.js, using the uglify-es API,
 * so that it is easier to send to the client
 *
 */

@@ -14,11 +14,13 @@ var entities = {};
 //Stores socket id
 var thisSocket;
 
-//Stores username
-var thisUsername;
+//Gets cookies
+document.getElementById('username').value = (getCookie('username')) ? getCookie('username') : '';
+document.getElementById('color').value = (getCookie('color')) ? getCookie('color') : '#e8c28b';
 
-//Data to resend if nessecary
-var resendData = {};
+//Stores username
+var thisUsername = (document.getElementById('username').value.trim()) ? document.getElementById('username').value.trim() : null;
+var thisColor = (document.getElementById('color').value) ? document.getElementById('color').value : '#e8c28b';
 
 //Stores map
 var map;
@@ -26,20 +28,23 @@ var map;
 //Stores framerate
 var framerate;
 
+//Canvas initialization
+var canvas = document.getElementById('canvas');
+canvas.width = 960;
+canvas.height = 900;
+var ctx = canvas.getContext('2d');
+
 //Checks if player is dead
 var dead = function(e){
-  if (typeof e === 'boolean'){
-    return e;
+  if (typeof e === 'boolean') return e;
+  if (!entities.players[thisSocket] || (entities.players[thisSocket] && entities.players[thisSocket].dead === true) || typeof entities.players[thisSocket].dead === 'undefined'){
+    return true;
   }else{
-    if (!entities.players[thisSocket] || (entities.players[thisSocket] && entities.players[thisSocket].dead === true) || typeof entities.players[thisSocket].dead === 'undefined'){
-      return true;
-    }else{
-      return false;
-    }
+    return false;
   }
 };
 
-/* Code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
+/* Modified code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
 //Keeps track of which keys are pressed
 var movement = {
@@ -104,7 +109,7 @@ document.addEventListener('keyup', function(event){
 
 /* End checks for key presses */
 
-/* End code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
+/* End modified code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
 //Sends new player command to server
 socket.emit('new player');
@@ -124,24 +129,28 @@ socket.on('dead', function(id){
 socket.on('get data', function(data){
 
   //Gets socket id
-  thisSocket = data.socketId;
+  if (data.socketId){
+    thisSocket = data.socketId;
+  }
+
+  //Changes username if needeed
+  if (!thisUsername){
+    thisUsername = data.socketId;
+  }
 
   //Gets map
   map = JSON.parse(data.map);
-  render(ctx);
 
   //Gets framerate
-  framerate = data.framerate;
+  if (data.framerate){
+    framerate = data.framerate;
+  }
 });
 
 //Checks for socket disconnect
 setInterval(function(){
   if (!socket.connected){
-    resend = entities.players[thisSocket];
-    thisSocket = null;
     drawDisconnect();
-
-    socket.emit('returning player', resend);
   }
 }, framerate);
 
@@ -172,12 +181,6 @@ setInterval(function(){
   }
 }, framerate);
 
-//Canvas declaration
-var canvas = document.getElementById('canvas');
-canvas.width = 960;
-canvas.height = 900;
-var ctx = canvas.getContext('2d');
-
 //Runs on update from server
 socket.on('update', function(dataFromServer){
 
@@ -188,57 +191,51 @@ socket.on('update', function(dataFromServer){
   entities = d.entities;
 
   //Renders map
-  render(ctx);
+  render();
 
   /* Item counters */
 
   let counterBandage = new Bandage({
     x: 35,
     y: 860,
-  }, circle, ctx, 3);
+  }, circle, 3);
 
   let counterHealthKit = new Healthkit({
     x: 100,
     y: 860,
-  }, ctx, 3);
+  }, 3);
 
   /* End item counters */
 
   //Loops through items
   for (let i in entities.items){
     var item = entities.items[i];
-    spawnItem(item, ctx);
+    spawnItem(item);
+  }
+
+  //Loops through zombies
+  for (let zomb in entities.zombies){
+    var zombie = new Enemy(entities.zombies[zomb], circle);
+    zombie.draw();
   }
 
   //Loops through players
   for (let id in entities.players){
     if (entities.players[id]){
-      var player = new User(entities.players[id], circle, ctx);
+      var player = new User(entities.players[id], circle);
       player.draw();
     }
-  }
-
-  //Loops through zombies
-  for (let zomb in entities.zombies){
-    var zombie = new Enemy(entities.zombies[zomb], circle, ctx);
-    zombie.draw();
   }
 
   //Checks if player is dead
   if (dead(entities)){
 
     //Draws death screen
-    deathScreen(ctx, canvas);
+    deathScreen();
   }else{
 
-    //Writes ping
-    const ping = new Date().getTime() - d.time.ms;
-    ctx.font = '15px Arial';
-    ctx.fillStyle = 'white';
-    ctx.textAlign = 'right';
-    ctx.fillText("Ping: " + ping, canvas.width - 10, 16);
-
     //Writes username
+    ctx.fillStyle = 'white';
     ctx.font = '38px Arial';
     ctx.textAlign = 'center';
     ctx.fillText((thisUsername) ? thisUsername : thisSocket, canvas.width / 2, canvas.height - 30);
@@ -248,7 +245,7 @@ socket.on('update', function(dataFromServer){
     ctx.rect(10, 10, 100, 10);
 
     //Updates health
-    updateHealth(ctx);
+    updateHealth();
 
     /* Text styling */
 
@@ -267,7 +264,7 @@ socket.on('update', function(dataFromServer){
 });
 
 //Updates the health
-function updateHealth(ctx){
+function updateHealth(){
 
   /* Color styling */
 
@@ -302,23 +299,23 @@ function getHealthLength(health, text){
 }
 
 //Draws an item
-function spawnItem(item, ctx){
+function spawnItem(item){
 
   //Creates a circle
-  circle(item.x, item.y, 14, 'rgba(0, 0, 0, .45)', 'black', ctx);
+  circle(item.x, item.y, 14, 'rgba(0, 0, 0, .45)', 'black');
 
   //Checks item and draws the item based on its type
   if (item.item === 'bandage'){
-    let bd = new Bandage(item, circle, ctx);
+    let bd = new Bandage(item, circle);
     bd.draw();
   }else if (item.item === 'healthKit'){
-    let hk = new Healthkit(item, ctx);
+    let hk = new Healthkit(item);
     hk.draw()
   }
 }
 
 //Draws a circle
-function circle(x, y, r, fill, stroke, ctx){
+function circle(x, y, r, fill, stroke){
 
   /* Color styling */
 
@@ -337,7 +334,7 @@ function circle(x, y, r, fill, stroke, ctx){
 }
 
 //Creates death screen
-function deathScreen(ctx, canvas){
+function deathScreen(){
 
   //Creates low opacity black overlay
   ctx.fillStyle = 'rgba(0, 0, 0, .35)';
@@ -385,16 +382,8 @@ function handle(e){
 
 /* End modified code from https://www.sitepoint.com/create-one-time-events-javascript */
 
-//Scrolls the screen to the game
-function scroll(){
-  window.scrollBy(0, 50);
-}
-
 //Draws disconnected screen
 function drawDisconnect(){
-
-  //Gets canvas data
-  var ctx = canvas.getContext('2d');
 
   //Fills the screen
   ctx.fillStyle = '#f73640';
@@ -412,15 +401,15 @@ function drawDisconnect(){
 }
 
 //Renders map
-function render(ctx){
+function render(){
 
   //Loops through all tiles
-  for (let m in map){
+  for (let m in Object.keys(map)){
     var tile = map[m];
 
     //Fills it in
-    ctx.fillStyle = tile.color;
-    ctx.fillRect(tile.x, tile.y, 30, 30);
+    ctx.fillStyle = (tile && tile.color) ? tile.color : '#77d655';
+    ctx.fillRect(tile.x, tile.y, 15, 15);
   }
 }
 
@@ -428,48 +417,79 @@ function render(ctx){
 function updateUsername(){
   var val = document.getElementById('username').value;
 
+  //Sets cookies
+  setCookie('username', val, 30);
+
   //Makes sure it is not a blank string
-  if (val && val !== '' && val.replace(/\s/g, '').length === 0){
+  if (val && val !== '' && val.replace(/\s/g, '').length !== 0){
 
     //Limits to twenty characters
     if (val.length > 20){
       val = val.substring(0, 19);
     }
-    thisUsername = document.getElementById('username').value;
+    thisUsername = document.getElementById('username').value.trim();
     socket.emit('username', thisUsername);
   }
 }
 
 //Sends color to server
 function sendColor(hex){
+  setCookie('color', '#' + hex, 30);
   socket.emit('color', {
     hex: hex,
     socket: thisSocket
   });
 }
 
+/* Code from https://www.w3schools.com/js/js_cookies.asp */
+
+//Sets a cookie
+function setCookie(cname, cvalue, exdays) {
+  var d = new Date();
+  d.setTime(d.getTime() + (exdays*24*60*60*1000));
+  var expires = "expires="+ d.toUTCString();
+  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+
+//Gets a cookie
+function getCookie(cname) {
+  var name = cname + "=";
+  var decodedCookie = decodeURIComponent(document.cookie);
+  var ca = decodedCookie.split(';');
+  for(var i = 0; i <ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
+/* End code from https://www.w3schools.com/js/js_cookies.asp */
+
 //Health kit class
 class Healthkit {
-  constructor(item, ctx, ratio){
-    this.ctx = ctx;
+  constructor(item, ratio){
     this.x = item.x;
     this.y = item.y
     this.ratio = (ratio) ? ratio : 1;
   }
 
   draw(){
-    this.ctx.fillStyle = 'white';
-    this.ctx.fillRect(this.x - 8 * this.ratio, this.y - 6 * this.ratio, 16 * this.ratio, 12 * this.ratio);
-    this.ctx.fillStyle = '#e23d3d';
-    this.ctx.fillRect(this.x - (4 * this.ratio), this.y - (2 * this.ratio), 8 * this.ratio, 4 * this.ratio);
-    this.ctx.fillRect(this.x - (2 * this.ratio), this.y - (4 * this.ratio), 4 * this.ratio, 8 * this.ratio);
+    ctx.fillStyle = 'white';
+    ctx.fillRect(this.x - 8 * this.ratio, this.y - 6 * this.ratio, 16 * this.ratio, 12 * this.ratio);
+    ctx.fillStyle = '#e23d3d';
+    ctx.fillRect(this.x - (4 * this.ratio), this.y - (2 * this.ratio), 8 * this.ratio, 4 * this.ratio);
+    ctx.fillRect(this.x - (2 * this.ratio), this.y - (4 * this.ratio), 4 * this.ratio, 8 * this.ratio);
   }
 }
 
 //Bandage class
 class Bandage {
-  constructor(item, circle, ctx, ratio){
-    this.ctx = ctx;
+  constructor(item, circle, ratio){
     this.circle = circle;
     this.x = item.x;
     this.y = item.y;
@@ -477,8 +497,8 @@ class Bandage {
   }
 
   draw(){
-    this.circle(this.x, this.y, 8 * this.ratio, 'white', 'white', this.ctx);
-    this.circle(this.x, this.y, 3 * this.ratio, 'black', 'white', this.ctx);
+    this.circle(this.x, this.y, 8 * this.ratio, 'white', 'white', ctx);
+    this.circle(this.x, this.y, 3 * this.ratio, 'black', 'white', ctx);
   }
 }
 
@@ -488,18 +508,18 @@ class User {
     this.x = player.x;
     this.y = player.y;
     this.circle = circle;
-    this.ctx = ctx;
+    ctx = ctx;
     this.player = player;
     this.color = (entities.players[player.id] && entities.players[player.id].data && entities.players[player.id].data && entities.players[player.id].data.color) ? entities.players[player.id].data.color : '#e8c28b';
-    this.username = (entities.players[player.id] && entities.players[player.id].data && entities.players[player.id].data.username) ? entities.players[player.id].data.username : player.id;
+    this.username = thisUsername;
   }
 
   draw(){
-    this.circle(this.x, this.y, 10, this.color, 'black', this.ctx);
-    this.ctx.font = "12px Arial";
-    this.ctx.textAlign = 'center';
-    this.ctx.fillStyle = '#ffffff';
-    ctx.fillText((this.username) ? this.username : this.player.id, this.x, this.y - 20);
+    this.circle(this.x, this.y, 10, this.color, 'black', ctx);
+    ctx.font = "12px Arial";
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(thisUsername, this.x, this.y - 20);
   }
 }
 
@@ -509,10 +529,10 @@ class Enemy {
     this.x = zombie.x;
     this.y = zombie.y;
     this.circle = circle;
-    this.ctx = ctx;
+    ctx = ctx;
   }
 
   draw(){
-    this.circle(this.x, this.y, 10, 'green', 'black', this.ctx);
+    this.circle(this.x, this.y, 10, 'green', 'black', ctx);
   }
 }

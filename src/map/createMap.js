@@ -80,7 +80,7 @@ module.exports.createMap = function(callback){
           id: id,
           x: x,
           y: y,
-          value: Number(tileData[1]),
+          value: (Number(tileData[1])) ? Number(tileData[1]) : 0,
           color: '#' + tileData[0]
         };
 
@@ -89,9 +89,8 @@ module.exports.createMap = function(callback){
 
           //Pushes the tile
           main.map.push(newTile);
-
-          //Logs the tile
-          console.log(newTile);
+        }else{
+          break;
         }
 
         // Increases id
@@ -110,15 +109,12 @@ module.exports.createMap = function(callback){
 
           //Pushes wall
           main.walls.push(newWall);
-
-          //Logs the wall
-          console.log(newWall);
         }
       }
 
       //Writes map and walls to json files
-      fs.writeFileSync('./src/map/map.zfm', JSON.stringify(main.map), 'utf8');
-      fs.writeFileSync('./src/map/walls.zfm', JSON.stringify(main.walls), 'utf8');
+      fs.writeFileSync('./src/map/map.zfm', JSON.stringify(main.map, null, 4), 'utf8');
+      fs.writeFileSync('./src/map/walls.zfm', JSON.stringify(main.walls, null, 4), 'utf8');
 
       //Logs the time it took
       console.log(`Map parsed: ${main.map.length + main.walls.length} values written in ${(new Date().getTime() - start) / 1000} seconds`);

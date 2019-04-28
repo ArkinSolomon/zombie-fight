@@ -16,7 +16,7 @@ process.on('uncaughtException', console.log);
 const port = 5000;
 
 //Framerate
-const fps = 2;
+const fps = 60;
 const framerate = 1000 / fps;
 
 //External modules
@@ -39,6 +39,7 @@ process.chdir(path.resolve(__dirname));
 const {createMap} = require('./src/map/createMap.js');
 const {minify} = require('./src/backend/minifier.js');
 const gameConsole = require('./src/backend/console.js');
+const Pathfinder = require('./src/backend/pathfinder.js')
 
 //Server setup
 const app = express();
@@ -55,10 +56,13 @@ app.set('port', port);
 app.use('/src/site', express.static(__dirname + '/src/site'));
 
 //Pages
-app.get('/', (request, response) => {
-  response.sendFile(path.join(__dirname, '/src/site/index.html'));
+app.get('/', (req, res) => {
+  res.redirect('/game');
 });
 
+app.get('/game', (req, res) => {
+  res.sendFile(path.join(__dirname, '/src/site/index.html'));
+});
 
 /* End code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
@@ -82,7 +86,7 @@ var map;
 createMap(() => {
 
   //Parses the map
-  walls = JSON.parse(fs.readFileSync('./src/map/walls.zfm'));
+  walls = JSON.parse(fs.readFileSync('./src/map/walls.zfm', 'utf8'));
   map = JSON.parse(fs.readFileSync('./src/map/map.zfm', 'utf8'));
 
   //Minifies javascript
@@ -154,6 +158,17 @@ Object.keys(ifaces).forEach(function (ifname) {
 
 /* End modified code from nodyou's answer at https://stackoverflow.com/questions/3653065/get-local-ip-address-in-node-js */
 
+//Renders map on console command
+Server.on('render', () => {
+  walls = JSON.parse(fs.readFileSync('./src/map/walls.zfm'));
+  map = JSON.parse(fs.readFileSync('./src/map/map.zfm', 'utf8'));
+
+  //Gives player game data
+  io.sockets.emit('get data', {
+    map: JSON.stringify(map)
+  });
+});
+
 //Gets public IPv4 and IPV6 adresses
 (async () => {
 	data.serverData.network.public.ipv4 = await publicIp.v4();
@@ -173,19 +188,6 @@ io.on('connection', (socket) => {
     framerate: framerate
   });
 
-  //Renders map on console command
-  Server.on('render', () => {
-    walls = JSON.parse(fs.readFileSync('./src/map/walls.zfm'));
-    map = JSON.parse(fs.readFileSync('./src/map/map.zfm', 'utf8'));
-
-    //Gives player game data
-    socket.emit('get data', {
-      map: JSON.stringify(map),
-      socketId: socket.id,
-      framerate: framerate
-    });
-  });
-
   //Initializes player
   socket.on('new player', (constantData) => {
 
@@ -195,6 +197,8 @@ io.on('connection', (socket) => {
       health: 100,
       damage: false,
       dead: false,
+      id: socket.id,
+      lives: 3,
       items: {
         healthKit: 0,
         bandage: 0
@@ -202,8 +206,8 @@ io.on('connection', (socket) => {
       data: {
         ip: socket.handshake.address,
         joinTime: new Date().getTime(),
-        username: (constantData && constantData.username) ? constantData.username : socket.id,
-        color: (constantData && constantData.color) ? constantData.color : '#e8c28b'
+        username: socket.id,
+        color: '#e8c28b'
       }
     };
   });
@@ -248,7 +252,7 @@ io.on('connection', (socket) => {
 
   //Updates username
   socket.on('username', (username) => {
-    if (entities.players[color.socket] && entities.players[color.socket].data){
+    if (entities.players[socket.id] && entities.players[socket.id].data){
       entities.players[socket.id].data.username = (username && entities.players[socket.id] && entities.players[socket.id].data) ? username : socket.id;
     }
   });
@@ -289,19 +293,19 @@ io.on('connection', (socket) => {
 
     //Strafing
     if (keys.up && !keys.left && !keys.right && !keys.down){
-      if (!checkCollideAllWalls([player.x, player.y - speed], 10)){
+      if (!Pathfinder.checkCollideAllWalls([player.x, player.y - speed], 10)){
         player.y -= speed;
       }
     }else if (keys.left && !keys.up && !keys.right && !keys.down){
-      if (!checkCollideAllWalls([player.x - speed, player.y], 10)){
+      if (!Pathfinder.checkCollideAllWalls([player.x - speed, player.y], 10)){
         player.x -= speed;
       }
     }else if (keys.down && !keys.left && !keys.right && !keys.up){
-      if (!checkCollideAllWalls([player.x, player.y + speed], 10)){
+      if (!Pathfinder.checkCollideAllWalls([player.x, player.y + speed], 10)){
         player.y += speed;
       }
     }else if (keys.right && !keys.left && !keys.up && !keys.down){
-      if (!checkCollideAllWalls([player.x + speed, player.y], 10)){
+      if (!Pathfinder.checkCollideAllWalls([player.x + speed, player.y], 10)){
         player.x += speed;
       }
     }
@@ -310,31 +314,31 @@ io.on('connection', (socket) => {
 
     //Diagonal movement
     if (keys.up && keys.left && !keys.down && !keys.right){
-      if (!checkCollideAllWalls([player.x - diagonalSpeed, player.y], 10)){
+      if (!Pathfinder.checkCollideAllWalls([player.x - diagonalSpeed, player.y], 10)){
         player.x -= diagonalSpeed;
       }
-      if (!checkCollideAllWalls([player.x, player.y - diagonalSpeed], 10)){
+      if (!Pathfinder.checkCollideAllWalls([player.x, player.y - diagonalSpeed], 10)){
         player.y -= diagonalSpeed;
       }
     }else if (keys.up && keys.right && !keys.down && !keys.left){
-      if (!checkCollideAllWalls([player.x + diagonalSpeed, player.y], 10)){
+      if (!Pathfinder.checkCollideAllWalls([player.x + diagonalSpeed, player.y], 10)){
         player.x += diagonalSpeed;
       }
-      if (!checkCollideAllWalls([player.x, player.y - diagonalSpeed], 10)){
+      if (!Pathfinder.checkCollideAllWalls([player.x, player.y - diagonalSpeed], 10)){
         player.y -= diagonalSpeed;
       }
     }else if (keys.down && keys.left && !keys.up && !keys.right){
-      if (!checkCollideAllWalls([player.x - diagonalSpeed, player.y], 10)){
+      if (!Pathfinder.checkCollideAllWalls([player.x - diagonalSpeed, player.y], 10)){
         player.x -= diagonalSpeed;
       }
-      if (!checkCollideAllWalls([player.x, player.y + diagonalSpeed], 10)){
+      if (!Pathfinder.checkCollideAllWalls([player.x, player.y + diagonalSpeed], 10)){
         player.y += diagonalSpeed;
       }
     }else if (keys.down && keys.right && !keys.up && !keys.left){
-      if (!checkCollideAllWalls([player.x + diagonalSpeed, player.y], 10)){
+      if (!Pathfinder.checkCollideAllWalls([player.x + diagonalSpeed, player.y], 10)){
         player.x += diagonalSpeed;
       }
-      if (!checkCollideAllWalls([player.x, player.y + diagonalSpeed], 10)){
+      if (!Pathfinder.checkCollideAllWalls([player.x, player.y + diagonalSpeed], 10)){
         player.y += diagonalSpeed;
       }
     }
@@ -355,12 +359,6 @@ io.on('connection', (socket) => {
     //Updates players
     players[socket.id] = player;
   });
-
-  //Respawns player
-  socket.on('returning player', (resend) => {
-    delete entities.players[socket.id];
-    entities.players[socket.id] = resend;
-  })
 
   //Removes players on disconnect
   socket.on('disconnect', () => {
@@ -538,12 +536,6 @@ setInterval(() => {
 
               //Removes health from player
               entities.players[player.id].health -= 10;
-
-              //Checks if the player died
-              if (entities.players[player.id].health <= 0){
-                delete entities.players[player.id];
-                io.sockets.emit('dead', player.id);
-              }
             }
 
             /* End damage */
@@ -612,17 +604,18 @@ setInterval(() => {
 
   /* End player-item collison */
 
-  //Checks if a player is dead
-  for (let counter in entities.players){
-    if (entities.players[counter].dead){
-      delete entities.players[counter];
+  //Checks if a zombie is dead
+  for (let counter in entities.zombies){
+    if (entities.zombies[counter].health <= 0){
+      delete entities.zombies[counter];
     }
   }
 
-  //Checks if a zombie is dead
-  for (let counter in entities.zombies){
-    if (entities.zombies[counter].dead){
-      delete entities.zombies[counter];
+  //Checks if a player is dead
+  for (let counter in entities.players){
+    if (entities.players[player.id] && entities.players[player.id].health <= 0){
+      io.sockets.emit('dead', player.id);
+      delete entities.players[player.id];
     }
   }
 
@@ -680,10 +673,12 @@ function spawnZombie(){
       //Makes zombie id
       let id = `enemy${new Date().getTime()}`;
 
+      let points = getRandomCoords();
+
       //Creates zombie
       entities.zombies[id] = {
-        x: Math.floor(Math.random() * 960),
-        y: Math.floor(Math.random() * 900),
+        x: points[0],
+        y: points[1],
         health: 50,
         id: id
       }
@@ -712,77 +707,15 @@ setInterval(() => {
     //Makes sure all variables are present
     if (Object.keys(entities.players).length > 0 && Object.keys(entities.zombies).length > 0 && player && zombie && player.x && player.y && zombie.x && zombie.y){
 
-      tracePath([zombie.x, zombie.y], [player.x, player.y]);
+      //Gets translation to new point
+      var moveTo = Pathfinder.getMoveTo([zombie.x, zombie.y], [player.x, player.y], data.rules.zombieSpeed, 10);
 
-      //Gets the angle of the slope in radians
-      var rad = Math.atan2(zombie.y, zombie.x);
+      //Checks if moveTo is not a number
+      if (typeof moveTo !== 'object' || typeof moveTo[0] === 'undefined' || typeof moveTo[1] === 'undefined' || isNaN(moveTo[0]) || isNaN(moveTo[1])) return;
 
-      //Declares sides
-      var sides = {
-        a: null,
-        b: null,
-        c: data.rules.zombieSpeed,
-      }
-
-      //Finds side a [ sin(slopeAngle) * hypotenuse ]
-      sides.a = sides.c * Math.sin(rad);
-
-      //Finds side b [ hypotenuse^2 - a^2 ]
-      sides.b = Math.sqrt(square(sides.c) - square(sides.a));
-
-      /* Zombie movement */
-
-      //Gets endpoints of zombie { minimum, maximum }
-      var pMX = plusOrMinus(zombie.x, 10);
-      var pMY = plusOrMinus(zombie.y, 10);
-
-      //Creates usable data for collision detection
-      var zombiePoints = {
-        top: [pMX, pMY[0] - sides.c],
-        right: [pMX[1] + sides.c, pMY],
-        bottom: [pMX, pMY[1] + sides.c],
-        left: [pMX[0] - sides.c, pMY]
-      };
-
-      //Updates object
-      entities.zombies[zombie.id].calculations = sides;
-      entities.zombies[zombie.id].calculations.rad = rad;
-
-      //Horizontal values
-      if (zombie.x > player.x && !checkCollideAllWalls(zombiePoints, 'left') && pMX[0] > player.x && pMX[1] < player.x){
-        entities.zombies[zombie.id].x -= sides.a;
-      }else if (zombie.x < player.x && !checkCollideAllWalls(zombiePoints, 'right') && pMX[0] > player.x && pMX[1] < player.x){
-        entities.zombies[zombie.id].x += sides.a;
-      }else{
-        if (zombie.x > player.x){
-          entities.zombies[zombie.id].x -= sides.c;
-        }else{
-          entities.zombies[zombie.id].x += sides.c;
-        }
-      }
-
-      //Vertical values
-      if (zombie.y > player.y && !checkCollideAllWalls(zombiePoints, 'top') && pMY[0] > player.y && pMY[1] < player.y){
-        entities.zombies[zombie.id].y -= sides.b;
-      }else if (zombie.y < player.y && !checkCollideAllWalls(zombiePoints, 'bottom') && pMY[0] > player.y && pMY[1] < player.x){
-        entities.zombies[zombie.id].y += sides.b;
-      }else{
-        if (zombie.y > player.y){
-          entities.zombies[zombie.id].y -= sides.c;
-        }else{
-          entities.zombies[zombie.id].y += sides.c;
-        }
-      }
-
-      /* End zombie movement */
-
-    }else if (!player){
-      entities.zombies[zombie.id].calculations = {
-        a: 'NO PLAYER DETECTED',
-        b: 'NO PLAYER DETECTED',
-        c: data.rules.zombieSpeed,
-        rad: 'NO PLAYER DETECTED'
-      };
+      //Changes location
+      data.entities.zombies[zombie.id].x += moveTo[0];
+      data.entities.zombies[zombie.id].y -= moveTo[1];
     }
   }
 }, framerate);
@@ -814,6 +747,15 @@ setInterval(() => {
     entities.items[i.getName()] = i.objectify();
   }
 }, data.rules.itemSpawnInterval);
+
+//Gets random coordinates
+function getRandomCoords(){
+  var potentialPoints = [Math.floor(Math.random() * 951), Math.floor(Math.random() * 901)];
+  while (Pathfinder.checkCollideAllWalls(potentialPoints, 10)){
+    potentialPoints = [Math.floor(Math.random() * 951), Math.floor(Math.random() * 901)];
+  }
+  return potentialPoints;
+}
 
 //Finds closest player to a zombie
 function findClosestPlayer(zombie){
@@ -849,57 +791,6 @@ function findClosestPlayer(zombie){
   };
 }
 
-//Checks tiles in front for walls
-function checkCollideAllWalls(points, radius){
-
-  //Variable to return
-  var isWall = false;
-
-  //Loops through all walls
-  for (let w in walls){
-      var wall = walls[w];
-
-      //Checks if all variables are present
-      if (wall[0] && wall[1] && wall[2] && wall[3] && points[0] && points[1]){
-
-        //Gets the four outside points of the entity
-        var ePoints = {
-          top: [points[0], points[1] - radius],
-          right: [points[0] + radius, points[1]],
-          bottom: [points[0], points[1] + radius],
-          left: [points[0] - radius, points[1]]
-        };
-
-        //Loops through all points
-        for (let e in ePoints){
-
-          //Checks collison
-          if (wallIsCollide(ePoints[e], wall)){
-            isWall = true;
-            break;
-          }
-        }
-      }
-  }
-  return isWall;
-}
-
-//Checks if an entity collides with a wall
-function wallIsCollide(points, wall){
-
-  //Checks collison
-  if (checkIsWithin(points[0], [wall[0], wall[2]]) && checkIsWithin(points[1], [wall[1], wall[3]])){
-    return true;
-  }else{
-    return false;
-  }
-}
-
-//Checks if a number is between two values
-function checkIsWithin(n, arr){
-  return (arr[0] < n && arr[1] > n);
-}
-
 //Finds distance between two points
 function distance(a1, a2, b1, b2){
 
@@ -931,8 +822,9 @@ class Item {
     this.id = new Date().getTime().toString();
     this.item = item;
     this.name = `item${this.id}`;
-    this.x = Math.floor(Math.random() * 951);
-    this.y = Math.floor(Math.random() * 901);
+    this.coords = getRandomCoords();
+    this.x = this.coords[0];
+    this.y = this.coords[1];
   }
 
   getName(){

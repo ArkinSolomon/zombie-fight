@@ -10,8 +10,8 @@ const arkin = require('arkin');
 const si = require('systeminformation');
 
 //Internal modules
-const {createMap} = require('./src/map/createMap.js');
-const Server = require('./server.js').Server;
+const {createMap} = require('../map/createMap.js'); //NOTE: Answered on stackoverflow by user 1556089774 (https://stackoverflow.com/users/7185241/1556089774)
+const Server = require('../../server.js'); //NOTE: Answered on stackoverflow by user 1556089774 (https://stackoverflow.com/users/7185241/1556089774)
 
 //Where the data is stored
 var data = {};
@@ -42,17 +42,8 @@ module.exports.start = function(){
         data.entities.items = {};
         console.log('Cleared all items');
         break;
-      case 'clear players': //Clears all players
-        for (let p in Object.keys(data.entities.players)){
-          delete data.entities.players[p];
-        }
-        console.log('Cleared all players');
-        break;
       case 'clear': //Clears all entities
       case 'clear all':
-        for (let p in Object.keys(data.entities.players)){
-          delete data.entities.players[p];
-        }
         data.entities.zombies = {};
         data.entities.items = {};
         console.log('Cleared all entities');
@@ -237,7 +228,7 @@ stop                       exit code 0
     /* End checks commands*/
 
     //Does not prompt on certain commands
-    if (input === 'systeminformation' || input === 'si' || input === 'info' || input === 'system' || input === 'information'){}else{
+    if (input === 'systeminformation' || input === 'si' || input === 'info' || input === 'system' || input === 'information'){/* It doesn't work if I don't have this */}else{
       rl.prompt();
     }
   });
@@ -255,5 +246,5 @@ function logAll(data){
 
 //Sends map render
 function sendMap(){
-  Server.emit('render');
+  Server.Server.emit('render');
 }

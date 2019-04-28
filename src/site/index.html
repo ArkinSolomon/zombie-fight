@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="src/site/stylesheets/site.css" type="text/css">
     <link rel="shortcut icon" href="src/site/images/favicon.ico" type="image/x-icon">
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/src/site/scripts/javascript/game.min.js"></script>
   </head>
   <body>
     <img src="/src/site/images/logo.png" id="logo"></img>
@@ -26,8 +25,9 @@
         </div>
       </div>
       <div id="canvas-container">
-        <canvas id="canvas"></canvas>
+        <canvas id="canvas" width="960" height="900"></canvas>
       </div>
     </div>
   </body>
+  <script src="/src/site/scripts/javascript/game.min.js"></script>
 </html>

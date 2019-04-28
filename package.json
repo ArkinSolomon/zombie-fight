@@ -2,7 +2,7 @@
   "name": "zombie-fight",
   "version": "1.0.0",
   "description": "Can you survive?",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
