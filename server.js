@@ -22,8 +22,6 @@ const framerate = 1000 / fps;
 //External modules
 const arkin = require('arkin');
 const fs = require('fs');
-const publicIp = require('public-ip');
-const OS = require('os');
 
 /* Code from https://hackernoon.com/how-to-build-a-multiplayer-browser-game-4a793818c29b */
 
@@ -125,8 +123,7 @@ var data = {
     millisecondsBetweenUpdates: framerate,
     rootDirectory: __dirname,
     network: {
-      port: port,
-      public: {}
+      port: port
     }
   }
 };
@@ -138,26 +135,6 @@ var entities = {
   items: {}
 };
 
-/* Modified code from nodyou's answer at https://stackoverflow.com/questions/3653065/get-local-ip-address-in-node-js */
-
-const ifaces = OS.networkInterfaces();
-Object.keys(ifaces).forEach(function (ifname) {
-  var alias = 0;
-  ifaces[ifname].forEach(function (iface) {
-    if ('IPv4' !== iface.family || iface.internal !== false){
-      return;
-    }
-    if (alias >= 1){
-      data.serverData.network.local = name + ':' + alias, iface.address;
-    }else{
-      data.serverData.network.local = ifname, iface.address;
-    }
-    alias++;
-  });
-});
-
-/* End modified code from nodyou's answer at https://stackoverflow.com/questions/3653065/get-local-ip-address-in-node-js */
-
 //Renders map on console command
 Server.on('render', () => {
   walls = JSON.parse(fs.readFileSync('./src/map/walls.zfm'));
@@ -168,12 +145,6 @@ Server.on('render', () => {
     map: JSON.stringify(map)
   });
 });
-
-//Gets public IPv4 and IPV6 adresses
-(async () => {
-	data.serverData.network.public.ipv4 = await publicIp.v4();
-	data.serverData.network.public.ipv6 = await publicIp.v6();
-})();
 
 //Easier player handling
 var players = {};
