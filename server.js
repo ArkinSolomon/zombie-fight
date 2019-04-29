@@ -442,7 +442,7 @@ setInterval(() => {
       if ((Object.keys(entities.zombies).indexOf(zombie1.id) !== -1) && (Object.keys(entities.zombies).indexOf(zombie2.id) !== -1) && (zombie1.x && zombie1.y && zombie2.x && zombie2.y)){
 
         //Checks distance between zombies
-        if (distance(zombie1.x, zombie2.x, zombie1.y, zombie2.y) < 20){
+        if (Pathfinder.distance(zombie1.x, zombie2.x, zombie1.y, zombie2.y) < 20){
 
           //Pushes horizontally
           if (zombie1.x > zombie2.x){
@@ -510,7 +510,7 @@ setInterval(() => {
         if ((Object.keys(entities.players).indexOf(player.id) !== -1) && (Object.keys(entities.zombies).indexOf(zombie.id) !== -1) && (player.x && player.y && zombie.x && zombie.y)){
 
           //Checks distance between entities
-          if (distance(player.x, zombie.x, player.y, zombie.y) < 20){
+          if (Pathfinder.distance(player.x, zombie.x, player.y, zombie.y) < 20){
 
             //Pushes horizontally
             if (player.x > zombie.x){
@@ -702,7 +702,7 @@ setInterval(() => {
     var zombie = entities.zombies[zomb];
 
     //Finds the nearest player
-    var player = findClosestPlayer(zombie).data;
+    var player = Pathfinder.findClosestPlayer(zombie, data.entities.players).data;
 
     //Makes sure all variables are present
     if (Object.keys(entities.players).length > 0 && Object.keys(entities.zombies).length > 0 && player && zombie && player.x && player.y && zombie.x && zombie.y){
@@ -757,63 +757,11 @@ function getRandomCoords(){
   return potentialPoints;
 }
 
-//Finds closest player to a zombie
-function findClosestPlayer(zombie){
-
-  //Array of player ids
-  var idArr = [];
-
-  //Array of player distances
-  var distArr = [];
-
-  //Loops through all players
-  for (let play in entities.players){
-    var player = entities.players[play];
-
-    //Pushes player id
-    idArr.push(play);
-
-    //Finds distances between x's and y's [ x1 - x2 ] [ y1 - y2 ]
-    var a = player.x - zombie.x;
-    var b = player.y - zombie.y;
-
-    //Finds and pushes the distances
-    distArr.push(distance(player.x, zombie.x, player.y, zombie.y));
-  }
-
-  //Finds the smallest distance
-  var min = Math.min(...distArr);
-
-  //Returns player and the distance from the zombie
-  return {
-    data: entities.players[idArr[distArr.indexOf(min)]],
-    distance: min
-  };
-}
-
-//Finds distance between two points
-function distance(a1, a2, b1, b2){
-
-  //Finds distances between x's and y's [ x1 - x2 ] [ y1 - y2 ]
-  let a = a1 - a2;
-  let b = b1 - b2;
-
-  //Returns the distance [ squareRoot(a^2 + b^2) ]
-  return Math.sqrt(square(a) + square(b));
-}
-
 //Finds values greater than and less than a given value
 function plusOrMinus(val, pOrM){
 
   //Returns values [ value - pOrM ] [ value + pOrM ]
   return [val - pOrM, val + pOrM];
-}
-
-//Squares a number
-function square(number){
-
-  //Returns the number squared [ value^2 ]
-  return Math.pow(number, 2);
 }
 
 //Item class

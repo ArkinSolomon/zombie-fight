@@ -18,7 +18,4 @@
 
 #### Future plans
 
-- Add weapons
-- Add not-so-advanced pathfinding
-- Add zombie-wall collision
 - Write AP paper
