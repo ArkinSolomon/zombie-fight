@@ -105,7 +105,7 @@ createMap(() => {
     .catch(console.log);
 });
 
-//Main data variable *MINIFIED*
+//Main data variable
 var data = {
   entities: {},
   time: {},
