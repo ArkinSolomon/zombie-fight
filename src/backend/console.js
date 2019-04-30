@@ -1,4 +1,4 @@
-/* console.js
+/* src\backend\console.js
 *
 * The server-side file which executes all commands issued by the console
 *

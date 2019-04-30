@@ -1,4 +1,4 @@
-/* createMap.js
+/* src\map\createMap.js
 *
 * The server-side file which turns the map string of the file into usable data.
 *
@@ -19,7 +19,7 @@ module.exports.createMap = function(callback){
   //Gets time
   const start = new Date().getTime();
 
-  //Gets map string
+  //Gets map string from file
   const mapString = fs.readFileSync('./src/map/map.zfms', 'utf8');
 
   //Makes the string into an array

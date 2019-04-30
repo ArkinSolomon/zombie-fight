@@ -1,4 +1,4 @@
-/* game.js
+/* src\site\scripts\javascript\game.js
 *
 * The client-side file which draws the data which has been recieved from the
 * server and also sends user input to the server.
