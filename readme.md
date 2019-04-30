@@ -3,4 +3,4 @@
 
 #### Changes
 
-- Removed ip detection
+- Gave credit

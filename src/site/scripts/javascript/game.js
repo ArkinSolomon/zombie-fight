@@ -390,7 +390,7 @@ function drawDisconnect(){
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   //Draws the image
-  let image = document.getElementById('disconnectImg');
+  let image = document.getElementById('disconnectImg'); //Image from http://www.clker.com/cliparts/a/5/3/4/13663729711952954145disconnect.svg.med.png
   ctx.drawImage(image, (canvas.width - image.width) / 2, ((canvas.height - image.height) / 2) - 100);
 
   //Writes text
