@@ -122,4 +122,6 @@ module.exports.createMap = function(callback){
       callback();
     });
   });
-}
+};
+
+module.exports.createMap(() => {});
